@@ -71,13 +71,13 @@ void puts(char *s)
 #define S_IMSGQ 2
 
 #define O_CREAT 4
+//#define USER
 
 /* Global variables*/
 
 size_t current_task = 0;
 unsigned int stacks[TASK_LIMIT][STACK_SIZE];
-//size_t task_count = 0;
-int task_count =0 ;
+size_t task_count = 0;
 
 //struct task_control_block tasks[TASK_LIMIT];
 
@@ -380,7 +380,9 @@ void serial_test_task()
 	char put_ch[2]={'0','\0'};
 
 	char next_line[3] = {'\n','\r','\0'};
-	char hint[33]="justin1534@justin1534-STM32:~$\0";  //33
+	char hint[] =  "USER @ USER -STM32:~$\0";//
+	int hint_length = sizeof(hint);
+	
 	char ps_message[]="Got PS command\0";
 
 	fdout = mq_open("/tmp/mqueue/out", 0);
@@ -389,7 +391,7 @@ void serial_test_task()
 	while (1) {
 		done = 0;
 		cmd_count=0;
-		write(fdout, &hint, strlen(hint));
+		write(fdout ,hint ,hint_length);
 
 		do {
 			read(fdin, &ch, 1);
@@ -402,8 +404,6 @@ void serial_test_task()
 					done = -1;
 				}
 				else{
-					//cmd[cmd_count]='\0';
-					//write(fdout, &next_line, cmd_count);
 					write(fdout, &next_line, 3);
 					done = -1;
 				}
@@ -435,9 +435,6 @@ void first()
 	if (!fork()) setpriority(0, 0), serialout(USART2, USART2_IRQn);
 	if (!fork()) setpriority(0, 0), serialin(USART2, USART2_IRQn);
 	if (!fork()) rs232_xmit_msg_task();
-	//if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), queue_str_task1();
-	//if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), queue_str_task2();
-	//if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), serial_readwrite_task();
 	if (!fork()) setpriority(0, PRIORITY_DEFAULT - 10), serial_test_task();
 
 	setpriority(0, PRIORITY_LIMIT);
