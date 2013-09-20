@@ -1,4 +1,5 @@
 CROSS_COMPILE=arm-none-eabi-
+CC := /usr/local/csl/arm-2012.03/bin/arm-none-eabi-gcc
 QEMU_STM32 ?= ../qemu_stm32/arm-softmmu/qemu-system-arm
 
 ARCH=CM3
@@ -15,6 +16,7 @@ all: main.bin
 
 main.bin: kernel.c context_switch.s syscall.s syscall.h
 	$(CROSS_COMPILE)gcc \
+		-DUSER_NAME=\"$(USER)\" \
 		-Wl,-Tmain.ld -nostartfiles \
 		-I . \
 		-I$(LIBDIR)/libraries/CMSIS/CM3/CoreSupport \

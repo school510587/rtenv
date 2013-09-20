@@ -380,7 +380,7 @@ void serial_test_task()
 	char put_ch[2]={'0','\0'};
 
 	char next_line[3] = {'\n','\r','\0'};
-	char hint[] =  "USER @ USER -STM32:~$\0";//
+	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$\0";//
 	int hint_length = sizeof(hint);
 	
 	char ps_message[]="Got PS command\0";
