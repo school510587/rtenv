@@ -380,9 +380,11 @@ void serial_test_task()
 	char put_ch[2]={'0','\0'};
 
 	char next_line[3] = {'\n','\r','\0'};
-	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$\0";//
+	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$\0";
 	int hint_length = sizeof(hint);
 	
+	char ps_cmp[] = "ps\r";
+	int ps_length = strlen(ps_cmp);
 	char ps_message[]="Got PS command\0";
 
 	fdout = mq_open("/tmp/mqueue/out", 0);
@@ -404,6 +406,7 @@ void serial_test_task()
 					done = -1;
 				}
 				else{
+					cmd[cmd_count] = '\0';
 					write(fdout, &next_line, 3);
 					done = -1;
 				}
@@ -415,14 +418,22 @@ void serial_test_task()
 			}
 		} while (!done);
 
-		if ( (cmd[0]=='p') && (cmd[1] == 's') && (cmd[2] == '\r') )
+		if ( cmd_check(&cmd,&ps_cmp,ps_length) )
 		{
 			write(fdout, &ps_message , 15);
 			write(fdout, &next_line , 3);
-			cmd[2] = '0';
 		}	
 
 	}
+}
+
+int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
+	int check_num=0;
+	while( *(cmd_cpy+check_num)==*(keyword+check_num) && (check_num < cmd_num))check_num++;
+	if (check_num==cmd_num)
+		return 1;
+	else 
+		return 0;
 }
 
 
