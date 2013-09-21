@@ -442,7 +442,7 @@ void show_task_info(){
 			task_info_status[0]='0'+tasks[task_i].status;
 			task_info_status[1]='\0';			
 
-			int_to_char(tasks[task_i].priority,task_info_priority);
+			itoa(tasks[task_i].priority,task_info_priority);
 
 			write(fdout, &task_info_pid , 2);
 			write_blank(3);
@@ -455,10 +455,29 @@ void show_task_info(){
 }
 
 //this function helps to show int
-int int_to_char(int input,char *output){
-	*(output) = '0'+((input%100)/10);
-	*(output+1) = '0'+(input%10);
-	*(output+2) = '\0';
+void itoa(int n, char *buffer){
+
+if(n==0){
+	*(buffer++) = '0';
+}
+
+else{
+	int f=10000;
+
+	if(n<0){
+		*(buffer++) = '-';
+		n=-n;
+	}
+
+	while(f!=0){
+		int i=n/f;
+		if(i!=0){
+			*(buffer++) = '0'+(i%10);;
+			}
+		f/=10;
+		}
+	}
+	*buffer = '\0';
 }
 
 int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
