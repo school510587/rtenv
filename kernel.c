@@ -433,14 +433,33 @@ void show_task_info(){
 	for (task_i = 0; task_i < task_count; task_i++)
 		{
 			char task_info_pid[2];
+			char task_info_status[2];
+			char task_info_priority[3];
+
 			task_info_pid[0]='0'+tasks[task_i].pid;
 			task_info_pid[1]='\0';
+
+			task_info_status[0]='0'+tasks[task_i].status;
+			task_info_status[1]='\0';			
+
+			int_to_char(tasks[task_i].priority,task_info_priority);
+
 			write(fdout, &task_info_pid , 2);
+			write_blank(3);
+			write(fdout, &task_info_status , 2);
+			write_blank(5);
+			write(fdout, &task_info_priority , 3);
+
 			write(fdout, &next_line , 3);
 		}
 }
 
-
+//this function helps to show int
+int int_to_char(int input,char *output){
+	*(output) = '0'+((input%100)/10);
+	*(output+1) = '0'+(input%10);
+	*(output+2) = '\0';
+}
 
 int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
 	int check_num=0;
@@ -451,7 +470,14 @@ int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
 		return 0;
 }
 
-
+int write_blank(int blank_num){
+	char blank[2]=" \0";
+	int blank_count=0;
+	while(blank_count <= blank_num){
+		write(fdout, &blank ,2);
+		blank_count++;
+	}
+}
 
 void first()
 {
