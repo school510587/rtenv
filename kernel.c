@@ -71,16 +71,13 @@ void puts(char *s)
 #define S_IMSGQ 2
 
 #define O_CREAT 4
-//#define USER
 
-/* Global variables*/
-
-size_t current_task = 0;
-unsigned int stacks[TASK_LIMIT][STACK_SIZE];
+/*Global Variables*/
+char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
-
-//struct task_control_block tasks[TASK_LIMIT];
-
+char cmd[100];
+int cmd_count=0;
+int fdout, fdin;
 /* Stack struct of user thread, see "Exception entry and return" */
 struct user_thread_stack {
 	unsigned int r4;
@@ -113,6 +110,7 @@ struct task_control_block {
     struct task_control_block **prev;
     struct task_control_block  *next;
 };
+struct task_control_block tasks[TASK_LIMIT];
 
 /* 
  * pathserver assumes that all files are FIFOs that were registered
@@ -370,22 +368,13 @@ void serial_readwrite_task()
 
 void serial_test_task()
 {
-	int fdout, fdin;
 	int done;
-	
-	char cmd[100];
-	int cmd_count=0;
 
 	char ch;
 	char put_ch[2]={'0','\0'};
 
-	char next_line[3] = {'\n','\r','\0'};
 	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$\0";
 	int hint_length = sizeof(hint);
-	
-	char ps_cmp[] = "ps\r";
-	int ps_length = strlen(ps_cmp);
-	char ps_message[]="Got PS command\0";
 
 	fdout = mq_open("/tmp/mqueue/out", 0);
 	fdin = open("/dev/tty0/in", 0);
@@ -418,14 +407,40 @@ void serial_test_task()
 			}
 		} while (!done);
 
-		if ( cmd_check(&cmd,&ps_cmp,ps_length) )
-		{
-			write(fdout, &ps_message , 15);
-			write(fdout, &next_line , 3);
-		}	
+		check_keyword();	
 
 	}
 }
+void check_keyword(){
+	char ps_cmp[] = "ps\r";
+	int ps_length = strlen(ps_cmp);
+
+	if ( cmd_check(&cmd,&ps_cmp,ps_length) ){
+			show_task_info();
+		}
+}
+
+//ps
+void show_task_info(){
+	char ps_message[]="PID STATUS PRIORITY\0";
+	int ps_message_length = sizeof(ps_message);
+
+	write(fdout, &ps_message , ps_message_length);
+	write(fdout, &next_line , 3);
+	
+	int task_i;
+	int task;
+	for (task_i = 0; task_i < task_count; task_i++)
+		{
+			char task_info_pid[2];
+			task_info_pid[0]='0'+tasks[task_i].pid;
+			task_info_pid[1]='\0';
+			write(fdout, &task_info_pid , 2);
+			write(fdout, &next_line , 3);
+		}
+}
+
+
 
 int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
 	int check_num=0;
@@ -746,13 +761,13 @@ _mknod(struct pipe_ringbuffer *pipe, int dev)
 
 int main()
 {
-	//unsigned int stacks[TASK_LIMIT][STACK_SIZE];
-	struct task_control_block tasks[TASK_LIMIT];
+	unsigned int stacks[TASK_LIMIT][STACK_SIZE];
+	//struct task_control_block tasks[TASK_LIMIT];
 	struct pipe_ringbuffer pipes[PIPE_LIMIT];
 	struct task_control_block *ready_list[PRIORITY_LIMIT + 1];  /* [0 ... 39] */
 	struct task_control_block *wait_list = NULL;
 	//size_t task_count = 0;
-	//size_t current_task = 0;
+	size_t current_task = 0;
 	size_t i;
 	struct task_control_block *task;
 	int timeup;
