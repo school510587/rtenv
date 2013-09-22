@@ -4,6 +4,7 @@
 #include "syscall.h"
 
 #include <stddef.h>
+#include <ctype.h> //test ctype
 
 void *memcpy(void *dest, const void *src, size_t n);
 
@@ -428,7 +429,7 @@ void check_keyword(){
 		show_cmd_info();
 	}
 	else if (cmd_check(&cmd,&echo_cmp,echo_length) ){
-		//show_echo();
+		show_echo();
 	}
 }
 
@@ -494,9 +495,9 @@ else{
 	*buffer = '\0';
 }
 
+//help
 void show_cmd_info(){
 
-	//char help_info[] = "This system has commands as follow:\n1)ps : list all the processes\n2)help : list all the command you can use\n3)echo [input words] : to show words you input\0";
 	char help_desp[] = "This system has commands as follow\n\r\0";
 	char ps_info[] = "1)ps : list all the processes\n\r\0";
 	char help_info[] = "2)help : list all commands you can use\n\r\0";
@@ -506,7 +507,41 @@ void show_cmd_info(){
 	write(fdout, &ps_info , sizeof(ps_info));
 	write(fdout, &help_info , sizeof(help_info));
 	write(fdout, &echo_info , sizeof(echo_info));
-	//write(fdout, &next_line , 3);
+}
+
+//echo
+void show_echo(){
+	int done = 0;
+	char echo_message[100];
+	int echo_count=0;
+	char ch;
+	char put_ch[2]={'0','\0'};
+
+	do {
+			read(fdin, &ch, 1);
+
+			if (ch == '\r' || echo_count >= 98 || (ch == '\n')) {
+				echo_message[echo_count++] = ch;
+				if (echo_count==0)
+				{
+					write(fdout, &next_line,3);
+					done = -1;
+				}
+				else{
+					echo_message[echo_count] = '\0';
+					write(fdout, &next_line, 3);
+					done = -1;
+				}
+			}
+			else {
+				put_ch[0]=ch;
+				echo_message[echo_count++] = ch;
+				write(fdout, &put_ch, 2);
+			}
+		} while (!done);
+		echo_message[echo_count++] = '\0';
+		write(fdout, &echo_message, echo_count);
+		write(fdout, &next_line, sizeof(next_line));
 }
 
 //this helps to compare two command
