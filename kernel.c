@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "stm32f10x.h"
 #include "RTOSConfig.h"
 
@@ -77,7 +78,8 @@ char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
 char cmd[100];
 int cmd_count=0;
-int fdout, fdin;
+int fdout;
+int fdin;
 /* Stack struct of user thread, see "Exception entry and return" */
 struct user_thread_stack {
 	unsigned int r4;
@@ -262,8 +264,10 @@ void greeting()
 
 void echo()
 {
-	int fdout, fdin;
+	int fdout;
+	int fdin;
 	char c;
+
 	fdout = open("/dev/tty0/out", 0);
 	fdin = open("/dev/tty0/in", 0);
 
@@ -275,9 +279,11 @@ void echo()
 
 void rs232_xmit_msg_task()
 {
-	int fdout, fdin;
+	int fdout;
+	int fdin;
 	char str[100];
 	int curr_char;
+
 	fdout = open("/dev/tty0/out", 0);
 	fdin = mq_open("/tmp/mqueue/out", O_CREAT);
 	setpriority(0, PRIORITY_DEFAULT - 2);
@@ -321,10 +327,10 @@ void queue_str_task2()
 	queue_str_task("Hello 2\n", 50);
 }
 
-
 void serial_readwrite_task()
 {
-	int fdout, fdin;
+	int fdout;
+	int fdin;
 	char str[100];
 	char ch;
 	int curr_char;
@@ -347,32 +353,29 @@ void serial_readwrite_task()
 			/* If the byte is an end-of-line type character, then
 			 * finish the string and inidcate we are done.
 			 */
-			if (curr_char >= 98 || (ch == '\r') || (ch == '\n')) {
+			if (curr_char >= 98 || ch == '\r' || ch == '\n') {
 				str[curr_char] = '\n';
 				str[curr_char+1] = '\0';
 				done = -1;
-				/* Otherwise, add the character to the
-				 * response string. */
 			}
-			else {
+			/* Otherwise, add the character to the
+			 * response string. */
+			else
 				str[curr_char++] = ch;
-			}
 		} while (!done);
 
 		/* Once we are done building the response string, queue the
 		 * response to be sent to the RS232 port.
 		 */
-		write(fdout, str, curr_char+1+1);
+		write(fdout, str, curr_char+1 + 1);
 	}
 }
 
 void serial_test_task()
 {
 	int done;
-
 	char ch;
 	char put_ch[2]={'0','\0'};
-
 	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$\0";
 	int hint_length = sizeof(hint);
 
@@ -381,100 +384,96 @@ void serial_test_task()
 
 	while (1) {
 		done = 0;
-		cmd_count=0;
-		write(fdout ,hint ,hint_length);
+		cmd_count = 0;
+		write(fdout, hint, hint_length);
 
 		do {
 			read(fdin, &ch, 1);
 
-			if (ch == '\r' || cmd_count >= 98 || (ch == '\n')) {
+			if (ch == '\r' || cmd_count >= 98 || ch == '\n') {
 				cmd[cmd_count++] = ch;
-				if (cmd_count==0)
-				{
-					write(fdout, &next_line,3);
+				if (cmd_count == 0) {
+					write(fdout, &next_line, 3);
 					done = -1;
 				}
-				else{
+				else {
 					cmd[cmd_count] = '\0';
 					write(fdout, &next_line, 3);
 					done = -1;
 				}
 			}
 			else {
-				put_ch[0]=ch;
+				put_ch[0] = ch;
 				cmd[cmd_count++] = ch;
 				write(fdout, &put_ch, 2);
 			}
 		} while (!done);
 
 		check_keyword();	
-
 	}
 }
-void check_keyword(){
+
+void check_keyword()
+{
 	char ps_cmp[] = "ps\r";
 	int ps_length = strlen(ps_cmp);
 
-	if ( cmd_check(&cmd,&ps_cmp,ps_length) ){
-			show_task_info();
-		}
+	if ( cmd_check(&cmd,&ps_cmp,ps_length) )
+		show_task_info();
 }
 
 //ps
-void show_task_info(){
+void show_task_info()
+{
 	char ps_message[]="PID STATUS PRIORITY\0";
 	int ps_message_length = sizeof(ps_message);
+	int task_i;
+	int task;
 
 	write(fdout, &ps_message , ps_message_length);
 	write(fdout, &next_line , 3);
-	
-	int task_i;
-	int task;
-	for (task_i = 0; task_i < task_count; task_i++)
-		{
-			char task_info_pid[2];
-			char task_info_status[2];
-			char task_info_priority[3];
 
-			task_info_pid[0]='0'+tasks[task_i].pid;
-			task_info_pid[1]='\0';
+	for (task_i = 0; task_i < task_count; task_i++) {
+		char task_info_pid[2];
+		char task_info_status[2];
+		char task_info_priority[3];
 
-			task_info_status[0]='0'+tasks[task_i].status;
-			task_info_status[1]='\0';			
+		task_info_pid[0]='0'+tasks[task_i].pid;
+		task_info_pid[1]='\0';
+		task_info_status[0]='0'+tasks[task_i].status;
+		task_info_status[1]='\0';			
 
-			itoa(tasks[task_i].priority,task_info_priority);
+		itoa(tasks[task_i].priority,task_info_priority);
 
-			write(fdout, &task_info_pid , 2);
-			write_blank(3);
+		write(fdout, &task_info_pid , 2);
+		write_blank(3);
 			write(fdout, &task_info_status , 2);
-			write_blank(5);
-			write(fdout, &task_info_priority , 3);
+		write_blank(5);
+		write(fdout, &task_info_priority , 3);
 
-			write(fdout, &next_line , 3);
-		}
+		write(fdout, &next_line , 3);
+	}
 }
 
 //this function helps to show int
-void itoa(int n, char *buffer){
+void itoa(int n, char *buffer)
+{
+	if (n == 0)
+		*(buffer++) = '0';
+	else {
+		int f = 10000;
 
-if(n==0){
-	*(buffer++) = '0';
-}
+		if (n < 0) {
+			*(buffer++) = '-';
+			n = -n;
+		}
 
-else{
-	int f=10000;
-
-	if(n<0){
-		*(buffer++) = '-';
-		n=-n;
-	}
-
-	while(f!=0){
-		int i=n/f;
-		if(i!=0){
-			*(buffer++) = '0'+(i%10);;
+		while (f != 0) {
+			int i = n / f;
+			if (i != 0) {
+				*(buffer++) = '0'+(i%10);;
 			}
-		f/=10;
+			f/=10;
 		}
 	}
 	*buffer = '\0';
