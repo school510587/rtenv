@@ -373,41 +373,34 @@ void serial_readwrite_task()
 
 void serial_test_task()
 {
-	int done;
-	char ch;
 	char put_ch[2]={'0','\0'};
 	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$ ";
 	int hint_length = sizeof(hint);
+	char *p = NULL;
+	int cmd_count = 0;
 
 	fdout = mq_open("/tmp/mqueue/out", 0);
 	fdin = open("/dev/tty0/in", 0);
 
 	while (1) {
-		done = 0;
-		cmd_count = 0;
+		p = cmd;
 		write(fdout, hint, hint_length);
 
-		do {
-			read(fdin, &ch, 1);
+		for (cmd_count = 0; ; cmd_count++) {
+			read(fdin, put_ch, 1);
 
-			if (ch == '\r' || cmd_count >= 98 || ch == '\n') {
-				cmd[cmd_count++] = ch;
-				if (cmd_count == 0) {
-					write(fdout, &next_line, 3);
-					done = -1;
-				}
-				else {
-					cmd[cmd_count] = '\0';
-					write(fdout, &next_line, 3);
-					done = -1;
-				}
+			if (put_ch[0] == '\r' || put_ch[0] == '\n') {
+				*p = '\0';
+				write(fdout, next_line, 3);
+				break;
 			}
-			else {
-				put_ch[0] = ch;
-				cmd[cmd_count++] = ch;
-				write(fdout, &put_ch, 2);
+			if (cmd_count >= 98) {
+				write(fdout, next_line, 3);
+				cmd_count = 0;
 			}
-		} while (!done);
+			*p++ = put_ch[0];
+			write(fdout, put_ch, 2);
+		}
 
 		check_keyword();	
 	}
@@ -415,13 +408,13 @@ void serial_test_task()
 
 void check_keyword()
 {
-	char ps_cmp[] = "ps\r";
+	char ps_cmp[] = "ps";
 	int ps_length = strlen(ps_cmp);
 
-	char help_cmp[] = "help\r";
+	char help_cmp[] = "help";
 	int help_length = strlen(help_cmp);
 
-	char echo_cmp[] = "echo\r";
+	char echo_cmp[] = "echo";
 	int echo_length = strlen(echo_cmp);
 
 	if ( cmd_check(&cmd,&ps_cmp,ps_length) ){
