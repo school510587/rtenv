@@ -415,9 +415,21 @@ void check_keyword(){
 	char ps_cmp[] = "ps\r";
 	int ps_length = strlen(ps_cmp);
 
+	char help_cmp[] = "help\r";
+	int help_length = strlen(help_cmp);
+
+	char echo_cmp[] = "echo\r";
+	int echo_length = strlen(echo_cmp);
+
 	if ( cmd_check(&cmd,&ps_cmp,ps_length) ){
-			show_task_info();
-		}
+		show_task_info();
+	}
+	else if ( cmd_check(&cmd,&help_cmp,help_length) ){
+		show_cmd_info();
+	}
+	else if (cmd_check(&cmd,&echo_cmp,echo_length) ){
+		//show_echo();
+	}
 }
 
 //ps
@@ -457,12 +469,14 @@ void show_task_info(){
 //this function helps to show int
 void itoa(int n, char *buffer){
 
+int f=10000;
+int i;
+
 if(n==0){
 	*(buffer++) = '0';
 }
 
 else{
-	int f=10000;
 
 	if(n<0){
 		*(buffer++) = '-';
@@ -470,7 +484,7 @@ else{
 	}
 
 	while(f!=0){
-		int i=n/f;
+		i=n/f;
 		if(i!=0){
 			*(buffer++) = '0'+(i%10);;
 			}
@@ -480,6 +494,22 @@ else{
 	*buffer = '\0';
 }
 
+void show_cmd_info(){
+
+	//char help_info[] = "This system has commands as follow:\n1)ps : list all the processes\n2)help : list all the command you can use\n3)echo [input words] : to show words you input\0";
+	char help_desp[] = "This system has commands as follow\n\r\0";
+	char ps_info[] = "1)ps : list all the processes\n\r\0";
+	char help_info[] = "2)help : list all commands you can use\n\r\0";
+	char echo_info[] = "3)echo [input words] : to show words you input\n\r\0";
+
+	write(fdout, &help_desp , sizeof(help_desp));
+	write(fdout, &ps_info , sizeof(ps_info));
+	write(fdout, &help_info , sizeof(help_info));
+	write(fdout, &echo_info , sizeof(echo_info));
+	//write(fdout, &next_line , 3);
+}
+
+//this helps to compare two command
 int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
 	int check_num=0;
 	while( *(cmd_cpy+check_num)==*(keyword+check_num) && (check_num < cmd_num))check_num++;
