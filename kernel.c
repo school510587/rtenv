@@ -51,6 +51,8 @@ void puts(char *s)
 	}
 }
 
+#define MAX_CMDNAME 19
+#define MAX_ARGC 19
 #define STACK_SIZE 512 /* Size of task stacks in words */
 #define TASK_LIMIT 8  /* Max number of tasks we can handle */
 #define PIPE_BUF   64 /* Size of largest atomic pipe message */
@@ -81,6 +83,13 @@ char cmd[100];
 int cmd_count=0;
 int fdout;
 int fdin;
+
+/* Structure for command handler. */
+typedef struct {
+	char cmd[MAX_CMDNAME + 1];
+	void (*func)(int, char**);
+} hcmd_entry;
+
 /* Stack struct of user thread, see "Exception entry and return" */
 struct user_thread_stack {
 	unsigned int r4;
