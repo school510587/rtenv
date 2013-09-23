@@ -84,11 +84,21 @@ int cmd_count=0;
 int fdout;
 int fdin;
 
+/* Command handlers. */
+void show_echo(int argc, char *argv[]);
+void show_cmd_info(int argc, char *argv[]);
+void show_task_info(int argc, char *argv[]);
+
 /* Structure for command handler. */
 typedef struct {
 	char cmd[MAX_CMDNAME + 1];
 	void (*func)(int, char**);
 } hcmd_entry;
+const hcmd_entry cmd_data[3] = {
+	{.cmd = "echo", .func = show_echo},
+	{.cmd = "help", .func = show_cmd_info},
+	{.cmd = "ps", .func = show_task_info}
+};
 
 /* Stack struct of user thread, see "Exception entry and return" */
 struct user_thread_stack {
