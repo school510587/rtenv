@@ -490,17 +490,17 @@ void itoa(int n, char *buffer)
 }
 
 //help
-void show_cmd_info(int argc, char* argv[]){
-
+void show_cmd_info(int argc, char* argv[])
+{
 	char help_desp[] = "This system has commands as follow\n\r\0";
 	char ps_info[] = "1)ps : list all the processes\n\r\0";
 	char help_info[] = "2)help : list all commands you can use\n\r\0";
 	char echo_info[] = "3)echo [input words] : to show words you input\n\r\0";
 
-	write(fdout, &help_desp , sizeof(help_desp));
-	write(fdout, &ps_info , sizeof(ps_info));
-	write(fdout, &help_info , sizeof(help_info));
-	write(fdout, &echo_info , sizeof(echo_info));
+	write(fdout, &help_desp, sizeof(help_desp));
+	write(fdout, &ps_info, sizeof(ps_info));
+	write(fdout, &help_info, sizeof(help_info));
+	write(fdout, &echo_info, sizeof(echo_info));
 }
 
 //echo
