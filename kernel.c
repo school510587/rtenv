@@ -593,16 +593,6 @@ void show_echo(int argc, char* argv[])
 	write(fdout, &next_line, sizeof(next_line));
 }
 
-//this helps to compare two command
-int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
-	int check_num=0;
-	while( *(cmd_cpy+check_num)==*(keyword+check_num) && (check_num < cmd_num))check_num++;
-	if (check_num==cmd_num)
-		return 1;
-	else 
-		return 0;
-}
-
 int write_blank(int blank_num){
 	char blank[2]=" \0";
 	int blank_count=0;
