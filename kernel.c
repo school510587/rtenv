@@ -53,6 +53,7 @@ void puts(char *s)
 
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
+#define MAX_CMDHELP 1023
 #define STACK_SIZE 512 /* Size of task stacks in words */
 #define TASK_LIMIT 8  /* Max number of tasks we can handle */
 #define PIPE_BUF   64 /* Size of largest atomic pipe message */
@@ -93,11 +94,12 @@ void show_task_info(int argc, char *argv[]);
 typedef struct {
 	char cmd[MAX_CMDNAME + 1];
 	void (*func)(int, char**);
+	char description[MAX_CMDHELP + 1];
 } hcmd_entry;
 const hcmd_entry cmd_data[3] = {
-	{.cmd = "echo", .func = show_echo},
-	{.cmd = "help", .func = show_cmd_info},
-	{.cmd = "ps", .func = show_task_info}
+	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
+	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
+	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
 };
 
 /* Stack struct of user thread, see "Exception entry and return" */
