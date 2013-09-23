@@ -421,18 +421,18 @@ void check_keyword()
 	int echo_length = strlen(echo_cmp);
 
 	if (cmd_check(&cmd, &ps_cmp, ps_length)) {
-		show_task_info();
+		show_task_info(0, NULL);
 	}
 	else if (cmd_check(&cmd, &help_cmp, help_length)) {
-		show_cmd_info();
+		show_cmd_info(0, NULL);
 	}
 	else if (cmd_check(&cmd, &echo_cmp, echo_length)) {
-		show_echo();
+		show_echo(0, NULL);
 	}
 }
 
 //ps
-void show_task_info()
+void show_task_info(int argc, char* argv[])
 {
 	char ps_message[]="PID STATUS PRIORITY\0";
 	int ps_message_length = sizeof(ps_message);
@@ -490,7 +490,7 @@ void itoa(int n, char *buffer)
 }
 
 //help
-void show_cmd_info(){
+void show_cmd_info(int argc, char* argv[]){
 
 	char help_desp[] = "This system has commands as follow\n\r\0";
 	char ps_info[] = "1)ps : list all the processes\n\r\0";
@@ -504,7 +504,7 @@ void show_cmd_info(){
 }
 
 //echo
-void show_echo(){
+void show_echo(int argc, char* argv[]){
 	int done = 0;
 	char echo_message[100];
 	int echo_count=0;
