@@ -561,36 +561,25 @@ void show_cmd_info(int argc, char* argv[])
 //echo
 void show_echo(int argc, char* argv[])
 {
-	int done = 0;
-	char echo_message[100];
-	int echo_count=0;
-	char ch;
-	char put_ch[2] = {'0','\0'};
+	const int _n = 1; /* Flag for "-n" option. */
+	int flag = 0;
+	int i;
 
-	do {
-		read(fdin, &ch, 1);
+	for (i = 1; i < argc; i++) {
+		if (!strcmp(argv[i], "-n"))
+			flag |= _n;
+		else
+			break;
+	}
 
-		if (ch == '\r' || echo_count >= 98 || (ch == '\n')) {
-			echo_message[echo_count++] = ch;
-			if (echo_count==0) {
-				write(fdout, &next_line, 3);
-				done = -1;
-			}
-			else {
-				echo_message[echo_count] = '\0';
-				write(fdout, &next_line, 3);
-				done = -1;
-			}
-		}
-		else {
-			put_ch[0] = ch;
-			echo_message[echo_count++] = ch;
-			write(fdout, &put_ch, 2);
-		}
-	} while (!done);
-	echo_message[echo_count++] = '\0';
-	write(fdout, &echo_message, echo_count);
-	write(fdout, &next_line, sizeof(next_line));
+	for (; i < argc; i++) {
+		write(fdout, argv[i], strlen(argv[i]) + 1);
+		if (i < argc - 1)
+			write(fdout, " ", 2);
+	}
+
+	if (~flag & _n)
+		write(fdout, next_line, 3);
 }
 
 int write_blank(int blank_num)
