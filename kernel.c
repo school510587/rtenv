@@ -51,7 +51,7 @@ void puts(char *s)
 	}
 }
 
-#define CMD_COUNT 3
+#define CMD_COUNT 4
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
@@ -90,6 +90,7 @@ int fdin;
 void show_echo(int argc, char *argv[]);
 void show_cmd_info(int argc, char *argv[]);
 void show_task_info(int argc, char *argv[]);
+void show_man_page(int argc, char *argv[]);
 
 /* Structure for command handler. */
 typedef struct {
@@ -100,6 +101,7 @@ typedef struct {
 const hcmd_entry cmd_data[CMD_COUNT] = {
 	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
 	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
+	{.cmd = "man", .func = show_man_page, .description = "Manual pager."},
 	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
 };
 
@@ -580,6 +582,28 @@ void show_echo(int argc, char* argv[])
 
 	if (~flag & _n)
 		write(fdout, next_line, 3);
+}
+
+//man
+void show_man_page(int argc, char *argv[])
+{
+	int i;
+
+	if (argc < 2)
+		return;
+
+	for (i = 0; i < argc && strcmp(cmd_data[i].cmd, argv[1]); i++)
+		;
+
+	if (i >= argc)
+		return;
+
+	write(fdout, "NAME: ", 7);
+	write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd) + 1);
+	write(fdout, next_line, 3);
+	write(fdout, "DESCRIPTION: ", 14);
+	write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
+	write(fdout, next_line, 3);
 }
 
 int write_blank(int blank_num){
