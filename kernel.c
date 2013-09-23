@@ -416,16 +416,15 @@ void check_keyword()
 	char echo_cmp[] = "echo";
 	int echo_length = strlen(echo_cmp);
 
-	if ( cmd_check(&cmd,&ps_cmp,ps_length) ){
+	if (cmd_check(&cmd, &ps_cmp, ps_length)) {
 		show_task_info();
 	}
-	else if ( cmd_check(&cmd,&help_cmp,help_length) ){
+	else if (cmd_check(&cmd, &help_cmp, help_length)) {
 		show_cmd_info();
 	}
-	else if (cmd_check(&cmd,&echo_cmp,echo_length) ){
+	else if (cmd_check(&cmd, &echo_cmp, echo_length)) {
 		show_echo();
 	}
-
 }
 
 //ps
