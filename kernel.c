@@ -51,6 +51,7 @@ void puts(char *s)
 	}
 }
 
+#define CMD_COUNT 3
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
@@ -96,7 +97,7 @@ typedef struct {
 	void (*func)(int, char**);
 	char description[MAX_CMDHELP + 1];
 } hcmd_entry;
-const hcmd_entry cmd_data[3] = {
+const hcmd_entry cmd_data[CMD_COUNT] = {
 	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
 	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
 	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
@@ -478,7 +479,7 @@ void check_keyword()
 			break;
 	}
 
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < CMD_COUNT; i++) {
 		if (!strcmp(argv[0], cmd_data[i].cmd)) {
 			cmd_data[i].func(argc, argv);
 			break;
@@ -551,7 +552,7 @@ void show_cmd_info(int argc, char* argv[])
 	int i;
 
 	write(fdout, &help_desp, sizeof(help_desp));
-	for (i = 0; i < 3; i++) {
+	for (i = 0; i < CMD_COUNT; i++) {
 		write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd) + 1);
 		write(fdout, ": ", 3);
 		write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
