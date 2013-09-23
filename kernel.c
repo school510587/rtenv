@@ -430,25 +430,59 @@ void serial_test_task()
 	}
 }
 
+/* Split command into tokens. */
+char *cmdtok(char *cmd)
+{
+	static char *cur = NULL;
+	static char *end = NULL;
+	if (cmd) {
+		char quo = '\0';
+		cur = cmd;
+		for (end = cmd; *end; end++) {
+			if (*end == '\'' || *end == '\"') {
+				if (quo == *end)
+					quo = '\0';
+				else if (quo == '\0')
+					quo = *end;
+				*end = '\0';
+			}
+			else if (isspace(*end) && !quo)
+				*end = '\0';
+		}
+	}
+	else
+		for (; *cur; cur++)
+			;
+
+	for (; *cur == '\0'; cur++)
+		if (cur == end) return NULL;
+	return cur;
+}
+
 void check_keyword()
 {
-	char ps_cmp[] = "ps";
-	int ps_length = strlen(ps_cmp);
+	char *argv[MAX_ARGC + 1] = {NULL};
+	int argc = 1;
+	int i;
 
-	char help_cmp[] = "help";
-	int help_length = strlen(help_cmp);
+	argv[0] = cmdtok(cmd);
+	if (!argv[0])
+		return;
 
-	char echo_cmp[] = "echo";
-	int echo_length = strlen(echo_cmp);
-
-	if (cmd_check(&cmd, &ps_cmp, ps_length)) {
-		show_task_info(0, NULL);
+	while (1) {
+		argv[argc] = cmdtok(NULL);
+		if (!argv[argc])
+			break;
+		argc++;
+		if (argc >= MAX_ARGC)
+			break;
 	}
-	else if (cmd_check(&cmd, &help_cmp, help_length)) {
-		show_cmd_info(0, NULL);
-	}
-	else if (cmd_check(&cmd, &echo_cmp, echo_length)) {
-		show_echo(0, NULL);
+
+	for (i = 0; i < 3; i++) {
+		if (!strcmp(argv[0], cmd_data[i].cmd)) {
+			cmd_data[i].func(argc, argv);
+			break;
+		}
 	}
 }
 
@@ -513,15 +547,15 @@ void itoa(int n, char *buffer)
 //help
 void show_cmd_info(int argc, char* argv[])
 {
-	char help_desp[] = "This system has commands as follow\n\r\0";
-	char ps_info[] = "1)ps : list all the processes\n\r\0";
-	char help_info[] = "2)help : list all commands you can use\n\r\0";
-	char echo_info[] = "3)echo [input words] : to show words you input\n\r\0";
+	const char help_desp[] = "This system has commands as follow\n\r\0";
+	int i;
 
 	write(fdout, &help_desp, sizeof(help_desp));
-	write(fdout, &ps_info, sizeof(ps_info));
-	write(fdout, &help_info, sizeof(help_info));
-	write(fdout, &echo_info, sizeof(echo_info));
+	for (i = 0; i < 3; i++) {
+		write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd) + 1);
+		write(fdout, ": ", 3);
+		write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
+	}
 }
 
 //echo
