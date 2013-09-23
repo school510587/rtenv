@@ -411,13 +411,13 @@ void serial_test_task()
 
 void check_keyword()
 {
-	char ps_cmp[] = "ps\r";
+	char ps_cmp[] = "ps";
 	int ps_length = strlen(ps_cmp);
 
-	char help_cmp[] = "help\r";
+	char help_cmp[] = "help";
 	int help_length = strlen(help_cmp);
 
-	char echo_cmp[] = "echo\r";
+	char echo_cmp[] = "echo";
 	int echo_length = strlen(echo_cmp);
 
 	if ( cmd_check(&cmd,&ps_cmp,ps_length) ){
