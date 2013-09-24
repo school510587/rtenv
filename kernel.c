@@ -51,7 +51,7 @@ void puts(char *s)
 	}
 }
 
-#define CMD_COUNT 4
+#define CMD_COUNT 5
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
@@ -104,6 +104,7 @@ typedef struct {
 } hcmd_entry;
 const hcmd_entry cmd_data[CMD_COUNT] = {
 	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
+	{.cmd = "export", .func = export_envvar, .description = "Export environment variables."},
 	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
 	{.cmd = "man", .func = show_man_page, .description = "Manual pager."},
 	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
