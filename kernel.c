@@ -656,6 +656,7 @@ void show_cmd_info(int argc, char* argv[])
 		write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd) + 1);
 		write(fdout, ": ", 3);
 		write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
+		write(fdout, next_line, 3);
 	}
 }
 
