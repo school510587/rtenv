@@ -690,10 +690,10 @@ void show_man_page(int argc, char *argv[])
 	if (argc < 2)
 		return;
 
-	for (i = 0; i < argc && strcmp(cmd_data[i].cmd, argv[1]); i++)
+	for (i = 0; i < CMD_COUNT && strcmp(cmd_data[i].cmd, argv[1]); i++)
 		;
 
-	if (i >= argc)
+	if (i >= CMD_COUNT)
 		return;
 
 	write(fdout, "NAME: ", 7);
