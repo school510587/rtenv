@@ -506,6 +506,7 @@ void export_envvar(int argc, char *argv[])
 {
 	char *value;
 	int i;
+	int j;
 
 	for (i = 1; i < argc; i++) {
 		value = argv[i];
@@ -513,9 +514,15 @@ void export_envvar(int argc, char *argv[])
 			value++;
 		if (*value)
 			*value++ = '\0';
-		strcpy(env_var[env_count].name, argv[i]);
-		strcpy(env_var[env_count].value, value);
-		env_count++;
+		for (j = 0; j < MAX_ENVCOUNT && strcmp(env_var[j].name, argv[i]); j++) {
+			if (j >= env_count) {
+				env_count++;
+				strcpy(env_var[j].name, argv[i]);
+				break;
+			}
+		}
+		if (j < env_count)
+			strcpy(env_var[j].value, value);
 	}
 }
 
