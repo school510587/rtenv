@@ -502,12 +502,24 @@ void check_keyword()
 	}
 }
 
+char *find_envvar(const char *name)
+{
+	int i;
+
+	for (i = 0; i < env_count; i++) {
+		if (!strcmp(env_var[i].name, name))
+			return env_var[i].value;
+	}
+
+	return NULL;
+}
+
 //export
 void export_envvar(int argc, char *argv[])
 {
+	char *found;
 	char *value;
 	int i;
-	int j;
 
 	for (i = 1; i < argc; i++) {
 		value = argv[i];
@@ -515,15 +527,14 @@ void export_envvar(int argc, char *argv[])
 			value++;
 		if (*value)
 			*value++ = '\0';
-		for (j = 0; j < MAX_ENVCOUNT && strcmp(env_var[j].name, argv[i]); j++) {
-			if (j >= env_count) {
-				env_count++;
-				strcpy(env_var[j].name, argv[i]);
-				break;
-			}
+		found = find_envvar(argv[i]);
+		if (found)
+			strcpy(found, value);
+		else if (env_count < MAX_ENVCOUNT) {
+			strcpy(env_var[env_count].name, argv[i]);
+			strcpy(env_var[env_count].value, value);
+			env_count++;
 		}
-		if (j < env_count)
-			strcpy(env_var[j].value, value);
 	}
 }
 
