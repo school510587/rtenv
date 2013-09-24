@@ -478,6 +478,8 @@ char *cmdtok(char *cmd)
 void check_keyword()
 {
 	char *argv[MAX_ARGC + 1] = {NULL};
+	char buffer[50 * MAX_ENVVALUE + 1];
+	char *p = buffer;
 	int argc = 1;
 	int i;
 
@@ -492,6 +494,12 @@ void check_keyword()
 		argc++;
 		if (argc >= MAX_ARGC)
 			break;
+	}
+
+	for(i = 0; i < argc; i++) {
+		int l = fill_arg(p, argv[i]);
+		argv[i] = p;
+		p += l + 1;
 	}
 
 	for (i = 0; i < CMD_COUNT; i++) {
@@ -512,6 +520,47 @@ char *find_envvar(const char *name)
 	}
 
 	return NULL;
+}
+
+/* Fill in entire value of argument. */
+int fill_arg(char *const dest, const char *argv)
+{
+	char env_name[MAX_ENVNAME + 1];
+	char *buf = dest;
+	char *p = NULL;
+
+	for (; *argv; argv++) {
+		if (isalnum(*argv)) {
+			if (p)
+				*p++ = *argv;
+			else
+				*buf++ = *argv;
+		}
+		else { /* Symbols. */
+			if (p) {
+				*p = '\0';
+				p = find_envvar(env_name);
+				if (p) {
+					strcpy(buf, p);
+					buf += strlen(p);
+					p = NULL;
+				}
+			}
+			if (*argv == '$')
+				p = env_name;
+		}
+	}
+	if (p) {
+		*p = '\0';
+		p = find_envvar(env_name);
+		if (p) {
+			strcpy(buf, p);
+			buf += strlen(p);
+		}
+	}
+	*buf = '\0';
+
+	return buf - dest;
 }
 
 //export
