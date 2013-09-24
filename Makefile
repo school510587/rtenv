@@ -46,30 +46,30 @@ main.bin: kernel.c context_switch.s syscall.s syscall.h
 	$(CROSS_COMPILE)objdump -S main.elf > main.list
 
 qemu: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 -kernel main.bin
+	$(QEMU_STM32) -nographic -M stm32-p103 -kernel main.bin
 
 qemudbg: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 \
+	$(QEMU_STM32) -nographic -M stm32-p103 \
 		-gdb tcp::3333 -S \
 		-kernel main.bin
 
 
 qemu_remote: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 -kernel main.bin -vnc :1
+	$(QEMU_STM32) -nographic -M stm32-p103 -kernel main.bin -vnc :1
 
 qemudbg_remote: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 \
+	$(QEMU_STM32) -nographic -M stm32-p103 \
 		-gdb tcp::3333 -S \
 		-kernel main.bin \
 		-vnc :1
 
 qemu_remote_bg: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 \
+	$(QEMU_STM32) -nographic -M stm32-p103 \
 		-kernel main.bin \
 		-vnc :1 &
 
 qemudbg_remote_bg: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 \
+	$(QEMU_STM32) -nographic -M stm32-p103 \
 		-gdb tcp::3333 -S \
 		-kernel main.bin \
 		-vnc :1 &
