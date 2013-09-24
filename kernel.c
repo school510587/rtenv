@@ -55,6 +55,9 @@ void puts(char *s)
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
+#define MAX_ENVCOUNT 30
+#define MAX_ENVNAME 15
+#define MAX_ENVVALUE 127
 #define STACK_SIZE 512 /* Size of task stacks in words */
 #define TASK_LIMIT 8  /* Max number of tasks we can handle */
 #define PIPE_BUF   64 /* Size of largest atomic pipe message */
@@ -87,6 +90,7 @@ int fdout;
 int fdin;
 
 /* Command handlers. */
+void export_envvar(int argc, char *argv[]);
 void show_echo(int argc, char *argv[]);
 void show_cmd_info(int argc, char *argv[]);
 void show_task_info(int argc, char *argv[]);
@@ -104,6 +108,14 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	{.cmd = "man", .func = show_man_page, .description = "Manual pager."},
 	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
 };
+
+/* Structure for environment variables. */
+typedef struct {
+	char name[MAX_ENVNAME + 1];
+	char value[MAX_ENVVALUE + 1];
+} evar_entry;
+evar_entry env_var[MAX_ENVCOUNT];
+int env_count = 0;
 
 /* Stack struct of user thread, see "Exception entry and return" */
 struct user_thread_stack {
@@ -486,6 +498,24 @@ void check_keyword()
 			cmd_data[i].func(argc, argv);
 			break;
 		}
+	}
+}
+
+//export
+void export_envvar(int argc, char *argv[])
+{
+	char *value;
+	int i;
+
+	for (i = 1; i < argc; i++) {
+		value = argv[i];
+		while (*value && *value != '=')
+			value++;
+		if (*value)
+			*value++ = '\0';
+		strcpy(env_var[env_count].name, argv[i]);
+		strcpy(env_var[env_count].value, value);
+		env_count++;
 	}
 }
 
