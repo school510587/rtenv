@@ -55,6 +55,7 @@ void puts(char *s)
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
+#define CMDBUF_SIZE 100
 #define MAX_ENVCOUNT 30
 #define MAX_ENVNAME 15
 #define MAX_ENVVALUE 127
@@ -84,7 +85,7 @@ void puts(char *s)
 /*Global Variables*/
 char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
-char cmd[100];
+char cmd[CMDBUF_SIZE];
 int cmd_count=0;
 int fdout;
 int fdin;
@@ -478,7 +479,7 @@ char *cmdtok(char *cmd)
 void check_keyword()
 {
 	char *argv[MAX_ARGC + 1] = {NULL};
-	char buffer[50 * MAX_ENVVALUE + 1];
+	char buffer[CMDBUF_SIZE * MAX_ENVVALUE / 2 + 1];
 	char *p = buffer;
 	int argc = 1;
 	int i;
