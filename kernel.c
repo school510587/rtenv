@@ -86,7 +86,7 @@ void puts(char *s)
 char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
 char cmd[CMDBUF_SIZE];
-int cmd_count=0;
+int cmd_len=0;
 int fdout;
 int fdin;
 
@@ -417,7 +417,7 @@ void serial_test_task()
 	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$ ";
 	int hint_length = sizeof(hint);
 	char *p = NULL;
-	int cmd_count = 0;
+	int cmd_len = 0;
 
 	fdout = mq_open("/tmp/mqueue/out", 0);
 	fdin = open("/dev/tty0/in", 0);
@@ -426,7 +426,7 @@ void serial_test_task()
 		p = cmd;
 		write(fdout, hint, hint_length);
 
-		for (cmd_count = 0; ; cmd_count++) {
+		for (cmd_len = 0; ; cmd_len++) {
 			read(fdin, &ch, 1);
 
 			if (ch == '\n' || ch == '\r') {
@@ -434,9 +434,9 @@ void serial_test_task()
 				write(fdout, next_line, 3);
 				break;
 			}
-			if (cmd_count >= 98) {
+			if (cmd_len >= 98) {
 				write(fdout, next_line, 3);
-				cmd_count = 0;
+				cmd_len = 0;
 			}
 			put_ch[0] = ch;
 			*p++ = ch;
