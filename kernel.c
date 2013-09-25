@@ -86,7 +86,6 @@ void puts(char *s)
 char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
 char cmd[CMDBUF_SIZE];
-int cmd_len=0;
 int fdout;
 int fdin;
 
