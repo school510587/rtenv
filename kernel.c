@@ -592,7 +592,7 @@ void export_envvar(int argc, char *argv[])
 //ps
 void show_task_info(int argc, char* argv[])
 {
-	char ps_message[]="PID STATUS PRIORITY\0";
+	char ps_message[]="PID STATUS PRIORITY";
 	int ps_message_length = sizeof(ps_message);
 	int task_i;
 	int task;
@@ -650,7 +650,7 @@ void itoa(int n, char *buffer)
 //help
 void show_cmd_info(int argc, char* argv[])
 {
-	const char help_desp[] = "This system has commands as follow\n\r\0";
+	const char help_desp[] = "This system has commands as follow\n\r";
 	int i;
 
 	write(fdout, &help_desp, sizeof(help_desp));
@@ -708,7 +708,7 @@ void show_man_page(int argc, char *argv[])
 }
 
 int write_blank(int blank_num){
-	char blank[2]=" \0";
+	char blank[2]=" ";
 	int blank_count=0;
 	while(blank_count <= blank_num){
 		write(fdout, &blank ,2);
