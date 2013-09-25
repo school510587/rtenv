@@ -377,7 +377,7 @@ void serial_test_task()
 	int done;
 	char ch;
 	char put_ch[2]={'0','\0'};
-	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$\0";
+	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$ ";
 	int hint_length = sizeof(hint);
 
 	fdout = mq_open("/tmp/mqueue/out", 0);
