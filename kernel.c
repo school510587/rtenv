@@ -51,10 +51,11 @@ void puts(char *s)
 	}
 }
 
-#define CMD_COUNT 5
+#define CMD_COUNT 6
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
+#define HISTORY_COUNT 20
 #define CMDBUF_SIZE 100
 #define MAX_ENVCOUNT 30
 #define MAX_ENVNAME 15
@@ -85,7 +86,8 @@ void puts(char *s)
 /*Global Variables*/
 char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
-char cmd[CMDBUF_SIZE];
+char cmd[HISTORY_COUNT][CMDBUF_SIZE];
+int cur_his=0;
 int fdout;
 int fdin;
 
@@ -95,6 +97,7 @@ void show_echo(int argc, char *argv[]);
 void show_cmd_info(int argc, char *argv[]);
 void show_task_info(int argc, char *argv[]);
 void show_man_page(int argc, char *argv[]);
+void show_history(int argc, char *argv[]);
 
 /* Structure for command handler. */
 typedef struct {
@@ -106,6 +109,7 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
 	{.cmd = "export", .func = export_envvar, .description = "Export environment variables."},
 	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
+	{.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
 	{.cmd = "man", .func = show_man_page, .description = "Manual pager."},
 	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
 };
@@ -421,8 +425,8 @@ void serial_test_task()
 	fdout = mq_open("/tmp/mqueue/out", 0);
 	fdin = open("/dev/tty0/in", 0);
 
-	while (1) {
-		p = cmd;
+	for (;; cur_his = (cur_his + 1) % HISTORY_COUNT) {
+		p = cmd[cur_his];
 		write(fdout, hint, hint_length);
 
 		for (cmd_len = 0; ; cmd_len++) {
@@ -478,12 +482,14 @@ char *cmdtok(char *cmd)
 void check_keyword()
 {
 	char *argv[MAX_ARGC + 1] = {NULL};
+	char cmdstr[CMDBUF_SIZE];
 	char buffer[CMDBUF_SIZE * MAX_ENVVALUE / 2 + 1];
 	char *p = buffer;
 	int argc = 1;
 	int i;
 
-	argv[0] = cmdtok(cmd);
+	strcpy(cmdstr, cmd[cur_his]);
+	argv[0] = cmdtok(cmdstr);
 	if (!argv[0])
 		return;
 
@@ -705,6 +711,18 @@ void show_man_page(int argc, char *argv[])
 	write(fdout, "DESCRIPTION: ", 14);
 	write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
 	write(fdout, next_line, 3);
+}
+
+void show_history(int argc, char *argv[])
+{
+	int i;
+
+	for (i = cur_his + 1; i <= cur_his + HISTORY_COUNT; i++) {
+		if (cmd[i % HISTORY_COUNT][0]) {
+			write(fdout, cmd[i % HISTORY_COUNT], strlen(cmd[i % HISTORY_COUNT]) + 1);
+			write(fdout, next_line, 3);
+		}
+	}
 }
 
 int write_blank(int blank_num){
