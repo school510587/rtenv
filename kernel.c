@@ -548,6 +548,8 @@ int fill_arg(char *const dest, const char *argv)
 			}
 			if (*argv == '$')
 				p = env_name;
+			else
+				*buf++ = *argv;
 		}
 	}
 	if (p) {
