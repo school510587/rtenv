@@ -413,7 +413,7 @@ void serial_test_task()
 {
 	char ch;
 	char put_ch[2]={'0','\0'};
-	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$\0";
+	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$ ";
 	int hint_length = sizeof(hint);
 	char *p = NULL;
 	int cmd_count = 0;
