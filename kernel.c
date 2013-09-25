@@ -530,7 +530,7 @@ int fill_arg(char *const dest, const char *argv)
 	char *p = NULL;
 
 	for (; *argv; argv++) {
-		if (isalnum(*argv)) {
+		if (isalnum(*argv) || *argv == '_') {
 			if (p)
 				*p++ = *argv;
 			else
