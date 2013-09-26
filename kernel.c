@@ -1,4 +1,3 @@
-#include <ctype.h>
 #include "stm32f10x.h"
 #include "RTOSConfig.h"
 
@@ -440,7 +439,7 @@ void check_keyword()
 //ps
 void show_task_info()
 {
-	char ps_message[]="PID STATUS PRIORITY\0";
+	char ps_message[]="PID STATUS PRIORITY";
 	int ps_message_length = sizeof(ps_message);
 	int task_i;
 	int task;
@@ -498,10 +497,10 @@ void itoa(int n, char *buffer)
 //help
 void show_cmd_info(){
 
-	char help_desp[] = "This system has commands as follow\n\r\0";
-	char ps_info[] = "1)ps : list all the processes\n\r\0";
-	char help_info[] = "2)help : list all commands you can use\n\r\0";
-	char echo_info[] = "3)echo [input words] : to show words you input\n\r\0";
+	char help_desp[] = "This system has commands as follow\n\r";
+	char ps_info[] = "1)ps : list all the processes\n\r";
+	char help_info[] = "2)help : list all commands you can use\n\r";
+	char echo_info[] = "3)echo [input words] : to show words you input\n\r";
 
 	write(fdout, &help_desp , sizeof(help_desp));
 	write(fdout, &ps_info , sizeof(ps_info));
