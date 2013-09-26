@@ -416,7 +416,7 @@ void serial_test_task()
 	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$ ";
 	int hint_length = sizeof(hint);
 	char *p = NULL;
-	int cmd_count = 0;
+	int cmd_len = 0;
 
 	fdout = mq_open("/tmp/mqueue/out", 0);
 	fdin = open("/dev/tty0/in", 0);
@@ -425,7 +425,7 @@ void serial_test_task()
 		p = cmd;
 		write(fdout, hint, hint_length);
 
-		for (cmd_count = 0; ; cmd_count++) {
+		for (cmd_len = 0; ; cmd_len++) {
 			read(fdin, put_ch, 1);
 
 			if (put_ch[0] == '\r' || put_ch[0] == '\n') {
@@ -433,9 +433,9 @@ void serial_test_task()
 				write(fdout, next_line, 3);
 				break;
 			}
-			if (cmd_count >= 98) {
+			if (cmd_len >= 98) {
 				write(fdout, next_line, 3);
-				cmd_count = 0;
+				cmd_len = 0;
 			}
 			*p++ = put_ch[0];
 			write(fdout, put_ch, 2);
