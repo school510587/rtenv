@@ -500,38 +500,38 @@ void show_cmd_info(){
 }
 
 //echo
-void show_echo(){
+void show_echo()
+{
 	int done = 0;
 	char echo_message[100];
 	int echo_count=0;
 	char ch;
-	char put_ch[2]={'0','\0'};
+	char put_ch[2] = {'0','\0'};
 
 	do {
-			read(fdin, &ch, 1);
+		read(fdin, &ch, 1);
 
-			if (ch == '\r' || echo_count >= 98 || (ch == '\n')) {
-				echo_message[echo_count++] = ch;
-				if (echo_count==0)
-				{
-					write(fdout, &next_line,3);
-					done = -1;
-				}
-				else{
-					echo_message[echo_count] = '\0';
-					write(fdout, &next_line, 3);
-					done = -1;
-				}
+		if (ch == '\r' || echo_count >= 98 || (ch == '\n')) {
+			echo_message[echo_count++] = ch;
+			if (echo_count==0) {
+				write(fdout, &next_line, 3);
+				done = -1;
 			}
 			else {
-				put_ch[0]=ch;
-				echo_message[echo_count++] = ch;
-				write(fdout, &put_ch, 2);
+				echo_message[echo_count] = '\0';
+				write(fdout, &next_line, 3);
+				done = -1;
 			}
-		} while (!done);
-		echo_message[echo_count++] = '\0';
-		write(fdout, &echo_message, echo_count);
-		write(fdout, &next_line, sizeof(next_line));
+		}
+		else {
+			put_ch[0] = ch;
+			echo_message[echo_count++] = ch;
+			write(fdout, &put_ch, 2);
+		}
+	} while (!done);
+	echo_message[echo_count++] = '\0';
+	write(fdout, &echo_message, echo_count);
+	write(fdout, &next_line, sizeof(next_line));
 }
 
 //this helps to compare two command
