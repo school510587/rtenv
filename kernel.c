@@ -77,7 +77,6 @@ void puts(char *s)
 char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
 char cmd[100];
-int cmd_count=0;
 int fdout;
 int fdin;
 /* Stack struct of user thread, see "Exception entry and return" */
