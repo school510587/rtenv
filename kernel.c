@@ -51,6 +51,11 @@ void puts(char *s)
 	}
 }
 
+#define CMD_COUNT 3
+#define MAX_CMDNAME 19
+#define MAX_ARGC 19
+#define MAX_CMDHELP 1023
+#define CMDBUF_SIZE 100
 #define STACK_SIZE 512 /* Size of task stacks in words */
 #define TASK_LIMIT 8  /* Max number of tasks we can handle */
 #define PIPE_BUF   64 /* Size of largest atomic pipe message */
@@ -77,10 +82,28 @@ void puts(char *s)
 /*Global Variables*/
 char next_line[3] = {'\n','\r','\0'};
 size_t task_count = 0;
-char cmd[100];
+char cmd[CMDBUF_SIZE];
 int cmd_count=0;
 int fdout;
 int fdin;
+
+/* Command handlers. */
+void show_echo(int argc, char *argv[]);
+void show_cmd_info(int argc, char *argv[]);
+void show_task_info(int argc, char *argv[]);
+
+/* Structure for command handler. */
+typedef struct {
+	char cmd[MAX_CMDNAME + 1];
+	void (*func)(int, char**);
+	char description[MAX_CMDHELP + 1];
+} hcmd_entry;
+const hcmd_entry cmd_data[CMD_COUNT] = {
+	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
+	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
+	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
+};
+
 /* Stack struct of user thread, see "Exception entry and return" */
 struct user_thread_stack {
 	unsigned int r4;
@@ -407,30 +430,64 @@ void serial_test_task()
 	}
 }
 
+/* Split command into tokens. */
+char *cmdtok(char *cmd)
+{
+	static char *cur = NULL;
+	static char *end = NULL;
+	if (cmd) {
+		char quo = '\0';
+		cur = cmd;
+		for (end = cmd; *end; end++) {
+			if (*end == '\'' || *end == '\"') {
+				if (quo == *end)
+					quo = '\0';
+				else if (quo == '\0')
+					quo = *end;
+				*end = '\0';
+			}
+			else if (isspace(*end) && !quo)
+				*end = '\0';
+		}
+	}
+	else
+		for (; *cur; cur++)
+			;
+
+	for (; *cur == '\0'; cur++)
+		if (cur == end) return NULL;
+	return cur;
+}
+
 void check_keyword()
 {
-	char ps_cmp[] = "ps";
-	int ps_length = strlen(ps_cmp);
+	char *argv[MAX_ARGC + 1] = {NULL};
+	int argc = 1;
+	int i;
 
-	char help_cmp[] = "help";
-	int help_length = strlen(help_cmp);
+	argv[0] = cmdtok(cmd);
+	if (!argv[0])
+		return;
 
-	char echo_cmp[] = "echo";
-	int echo_length = strlen(echo_cmp);
-
-	if (cmd_check(&cmd, &ps_cmp, ps_length)) {
-		show_task_info();
+	while (1) {
+		argv[argc] = cmdtok(NULL);
+		if (!argv[argc])
+			break;
+		argc++;
+		if (argc >= MAX_ARGC)
+			break;
 	}
-	else if (cmd_check(&cmd, &help_cmp, help_length)) {
-		show_cmd_info();
-	}
-	else if (cmd_check(&cmd, &echo_cmp, echo_length)) {
-		show_echo();
+
+	for (i = 0; i < CMD_COUNT; i++) {
+		if (!strcmp(argv[0], cmd_data[i].cmd)) {
+			cmd_data[i].func(argc, argv);
+			break;
+		}
 	}
 }
 
 //ps
-void show_task_info()
+void show_task_info(int argc, char* argv[])
 {
 	char ps_message[]="PID STATUS PRIORITY\0";
 	int ps_message_length = sizeof(ps_message);
@@ -488,21 +545,22 @@ void itoa(int n, char *buffer)
 }
 
 //help
-void show_cmd_info()
+void show_cmd_info(int argc, char* argv[])
 {
-	char help_desp[] = "This system has commands as follow\n\r\0";
-	char ps_info[] = "1)ps : list all the processes\n\r\0";
-	char help_info[] = "2)help : list all commands you can use\n\r\0";
-	char echo_info[] = "3)echo [input words] : to show words you input\n\r\0";
+	const char help_desp[] = "This system has commands as follow\n\r\0";
+	int i;
 
 	write(fdout, &help_desp, sizeof(help_desp));
-	write(fdout, &ps_info, sizeof(ps_info));
-	write(fdout, &help_info, sizeof(help_info));
-	write(fdout, &echo_info, sizeof(echo_info));
+	for (i = 0; i < CMD_COUNT; i++) {
+		write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd) + 1);
+		write(fdout, ": ", 3);
+		write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
+		write(fdout, next_line, 3);
+	}
 }
 
 //echo
-void show_echo()
+void show_echo(int argc, char* argv[])
 {
 	int done = 0;
 	char echo_message[100];
@@ -534,16 +592,6 @@ void show_echo()
 	echo_message[echo_count++] = '\0';
 	write(fdout, &echo_message, echo_count);
 	write(fdout, &next_line, sizeof(next_line));
-}
-
-//this helps to compare two command
-int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
-	int check_num=0;
-	while( *(cmd_cpy+check_num)==*(keyword+check_num) && (check_num < cmd_num))check_num++;
-	if (check_num==cmd_num)
-		return 1;
-	else 
-		return 0;
 }
 
 int write_blank(int blank_num)
