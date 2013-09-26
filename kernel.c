@@ -546,11 +546,13 @@ int cmd_check(char *cmd_cpy, char *keyword,int cmd_num){
 		return 0;
 }
 
-int write_blank(int blank_num){
-	char blank[2]=" \0";
-	int blank_count=0;
-	while(blank_count <= blank_num){
-		write(fdout, &blank ,2);
+int write_blank(int blank_num)
+{
+	char blank[] = " ";
+	int blank_count = 0;
+
+	while (blank_count <= blank_num) {
+		write(fdout, blank ,sizeof(blank));
 		blank_count++;
 	}
 }
