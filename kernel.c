@@ -423,7 +423,7 @@ void serial_test_task()
 		p = cmd;
 		write(fdout, hint, hint_length);
 
-		for (cmd_count = 0; ; cmd_count++) {
+		while (1) {
 			read(fdin, put_ch, 1);
 
 			if (put_ch[0] == '\r' || put_ch[0] == '\n') {
@@ -431,14 +431,11 @@ void serial_test_task()
 				write(fdout, next_line, 3);
 				break;
 			}
-			if (cmd_count >= 98) {
-				write(fdout, next_line, 3);
-				cmd_count = 0;
+			else if (p - cmd < CMDBUF_SIZE - 1) {
+				*p++ = put_ch[0];
+				write(fdout, put_ch, 2);
 			}
-			*p++ = put_ch[0];
-			write(fdout, put_ch, 2);
 		}
-
 		check_keyword();	
 	}
 }
