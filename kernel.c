@@ -51,11 +51,14 @@ void puts(char *s)
 	}
 }
 
-#define CMD_COUNT 4
+#define CMD_COUNT 5
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
 #define CMDBUF_SIZE 100
+#define MAX_ENVCOUNT 30
+#define MAX_ENVNAME 15
+#define MAX_ENVVALUE 127
 #define STACK_SIZE 512 /* Size of task stacks in words */
 #define TASK_LIMIT 8  /* Max number of tasks we can handle */
 #define PIPE_BUF   64 /* Size of largest atomic pipe message */
@@ -88,6 +91,7 @@ int fdout;
 int fdin;
 
 /* Command handlers. */
+void export_envvar(int argc, char *argv[]);
 void show_echo(int argc, char *argv[]);
 void show_cmd_info(int argc, char *argv[]);
 void show_task_info(int argc, char *argv[]);
@@ -101,10 +105,19 @@ typedef struct {
 } hcmd_entry;
 const hcmd_entry cmd_data[CMD_COUNT] = {
 	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
+	{.cmd = "export", .func = export_envvar, .description = "Export environment variables."},
 	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
 	{.cmd = "man", .func = show_man_page, .description = "Manual pager."},
 	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
 };
+
+/* Structure for environment variables. */
+typedef struct {
+	char name[MAX_ENVNAME + 1];
+	char value[MAX_ENVVALUE + 1];
+} evar_entry;
+evar_entry env_var[MAX_ENVCOUNT];
+int env_count = 0;
 
 /* Stack struct of user thread, see "Exception entry and return" */
 struct user_thread_stack {
@@ -464,6 +477,8 @@ char *cmdtok(char *cmd)
 void check_keyword()
 {
 	char *argv[MAX_ARGC + 1] = {NULL};
+	char buffer[50 * MAX_ENVVALUE + 1];
+	char *p = buffer;
 	int argc = 1;
 	int i;
 
@@ -480,10 +495,95 @@ void check_keyword()
 			break;
 	}
 
+	for(i = 0; i < argc; i++) {
+		int l = fill_arg(p, argv[i]);
+		argv[i] = p;
+		p += l + 1;
+	}
+
 	for (i = 0; i < CMD_COUNT; i++) {
 		if (!strcmp(argv[0], cmd_data[i].cmd)) {
 			cmd_data[i].func(argc, argv);
 			break;
+		}
+	}
+}
+
+char *find_envvar(const char *name)
+{
+	int i;
+
+	for (i = 0; i < env_count; i++) {
+		if (!strcmp(env_var[i].name, name))
+			return env_var[i].value;
+	}
+
+	return NULL;
+}
+
+/* Fill in entire value of argument. */
+int fill_arg(char *const dest, const char *argv)
+{
+	char env_name[MAX_ENVNAME + 1];
+	char *buf = dest;
+	char *p = NULL;
+
+	for (; *argv; argv++) {
+		if (isalnum(*argv) || *argv == '_') {
+			if (p)
+				*p++ = *argv;
+			else
+				*buf++ = *argv;
+		}
+		else { /* Symbols. */
+			if (p) {
+				*p = '\0';
+				p = find_envvar(env_name);
+				if (p) {
+					strcpy(buf, p);
+					buf += strlen(p);
+					p = NULL;
+				}
+			}
+			if (*argv == '$')
+				p = env_name;
+			else
+				*buf++ = *argv;
+		}
+	}
+	if (p) {
+		*p = '\0';
+		p = find_envvar(env_name);
+		if (p) {
+			strcpy(buf, p);
+			buf += strlen(p);
+		}
+	}
+	*buf = '\0';
+
+	return buf - dest;
+}
+
+//export
+void export_envvar(int argc, char *argv[])
+{
+	char *found;
+	char *value;
+	int i;
+
+	for (i = 1; i < argc; i++) {
+		value = argv[i];
+		while (*value && *value != '=')
+			value++;
+		if (*value)
+			*value++ = '\0';
+		found = find_envvar(argv[i]);
+		if (found)
+			strcpy(found, value);
+		else if (env_count < MAX_ENVCOUNT) {
+			strcpy(env_var[env_count].name, argv[i]);
+			strcpy(env_var[env_count].value, value);
+			env_count++;
 		}
 	}
 }
