@@ -514,6 +514,11 @@ void check_keyword()
 			break;
 		}
 	}
+	if (i == CMD_COUNT) {
+		write(fdout, argv[0], strlen(argv[0]) + 1);
+		write(fdout, ": command not found", 20);
+		write(fdout, next_line, 3);
+	}
 }
 
 char *find_envvar(const char *name)
