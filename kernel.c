@@ -61,7 +61,6 @@ void puts(char *s)
 	}
 }
 
-#define CMD_COUNT 6
 #define MAX_CMDNAME 19
 #define MAX_ARGC 19
 #define MAX_CMDHELP 1023
@@ -109,6 +108,16 @@ void show_task_info(int argc, char *argv[]);
 void show_man_page(int argc, char *argv[]);
 void show_history(int argc, char *argv[]);
 
+/* Enumeration for command types. */
+enum {
+	CMD_ECHO = 0,
+	CMD_EXPORT,
+	CMD_HELP,
+	CMD_HISTORY,
+	CMD_MAN,
+	CMD_PS,
+	CMD_COUNT
+} CMD_TYPE;
 /* Structure for command handler. */
 typedef struct {
 	char cmd[MAX_CMDNAME + 1];
@@ -116,12 +125,12 @@ typedef struct {
 	char description[MAX_CMDHELP + 1];
 } hcmd_entry;
 const hcmd_entry cmd_data[CMD_COUNT] = {
-	{.cmd = "echo", .func = show_echo, .description = "Show words you input."},
-	{.cmd = "export", .func = export_envvar, .description = "Export environment variables."},
-	{.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
-	{.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
-	{.cmd = "man", .func = show_man_page, .description = "Manual pager."},
-	{.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
+	[CMD_ECHO] = {.cmd = "echo", .func = show_echo, .description = "Show words you input."},
+	[CMD_EXPORT] = {.cmd = "export", .func = export_envvar, .description = "Export environment variables."},
+	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
+	[CMD_HISTORY] = {.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
+	[CMD_MAN] = {.cmd = "man", .func = show_man_page, .description = "Manual pager."},
+	[CMD_PS] = {.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
 };
 
 /* Structure for environment variables. */
