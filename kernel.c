@@ -499,6 +499,7 @@ void check_keyword()
 	int argc = 1;
 	int i;
 
+	find_events();
 	strcpy(cmdstr, cmd[cur_his]);
 	argv[0] = cmdtok(cmdstr);
 	if (!argv[0])
@@ -529,6 +530,31 @@ void check_keyword()
 		write(fdout, argv[0], strlen(argv[0]) + 1);
 		write(fdout, ": command not found", 20);
 		write(fdout, next_line, 3);
+	}
+}
+
+void find_events()
+{
+	char buf[CMDBUF_SIZE];
+	char *p = cmd[cur_his];
+	char *q;
+	int i;
+
+	for (; *p; p++) {
+		if (*p == '!') {
+			q = p;
+			while (*q && !isspace(*q))
+				q++;
+			for (i = cur_his + HISTORY_COUNT - 1; i > cur_his; i--) {
+				if (!strncmp(cmd[i % HISTORY_COUNT], p + 1, q - p - 1)) {
+					strcpy(buf, q);
+					strcpy(p, cmd[i % HISTORY_COUNT]);
+					p += strlen(p);
+					strcpy(p--, buf);
+					break;
+				}
+			}
+		}
 	}
 }
 
