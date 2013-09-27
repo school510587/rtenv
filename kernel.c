@@ -435,6 +435,12 @@ void serial_test_task()
 				write(fdout, next_line, 3);
 				break;
 			}
+			else if (put_ch[0] == 127 || put_ch[0] == '\b') {
+				if (p > cmd[cur_his]) {
+					p--;
+					write(fdout, "\b \b", 4);
+				}
+			}
 			else if (p - cmd[cur_his] < CMDBUF_SIZE - 1) {
 				*p++ = put_ch[0];
 				write(fdout, put_ch, 2);
