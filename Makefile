@@ -89,5 +89,11 @@ qemuauto_remote: main.bin gdbscript
 	$(CROSS_COMPILE)gdb -x gdbscript&
 	sleep 5
 
+test: main.bin
+	$(QEMU_STM32) -nographic -M stm32-p103 \
+		-gdb tcp::3333 -S \
+		-kernel main.bin -monitor null &
+	$(CROSS_COMPILE)gdb -x gdb.in
+
 clean:
 	rm -f *.elf *.bin *.list
