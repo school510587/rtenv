@@ -95,6 +95,7 @@ test: main.bin
 		-serial stdio \
 		-kernel main.bin -monitor null &
 	$(CROSS_COMPILE)gdb -x gdb.in
+	pkill -9 $(notdir $(QEMU_STM32))
 
 clean:
 	rm -f *.elf *.bin *.list
