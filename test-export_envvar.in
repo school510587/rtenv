@@ -1,0 +1,83 @@
+source qemudbg_init.in
+set logging on
+set env_var[0].name[0]='E'
+set env_var[0].name[1]='D'
+set env_var[0].name[2]='I'
+set env_var[0].name[3]='T'
+set env_var[0].name[4]='O'
+set env_var[0].name[5]='R'
+set env_var[0].name[6]='\0'
+set env_var[0].value[0]='g'
+set env_var[0].value[1]='e'
+set env_var[0].value[2]='d'
+set env_var[0].value[3]='i'
+set env_var[0].value[4]='t'
+set env_var[0].value[5]='\0'
+set env_var[1].name[0]='P'
+set env_var[1].name[1]='A'
+set env_var[1].name[2]='T'
+set env_var[1].name[3]='H'
+set env_var[1].name[4]='\0'
+set env_var[1].value[0]='~'
+set env_var[1].value[1]='\0'
+set env_var[2].name[0]='L'
+set env_var[2].name[1]='C'
+set env_var[2].name[2]='_'
+set env_var[2].name[3]='A'
+set env_var[2].name[4]='L'
+set env_var[2].name[5]='L'
+set env_var[2].name[6]='\0'
+set env_var[2].value[0]='U'
+set env_var[2].value[1]='T'
+set env_var[2].value[2]='F'
+set env_var[2].value[3]='8'
+set env_var[2].value[4]='\0'
+set env_count=3
+set cmd[0][0]='e'
+set cmd[0][1]='x'
+set cmd[0][2]='p'
+set cmd[0][3]='o'
+set cmd[0][4]='r'
+set cmd[0][5]='t'
+set cmd[0][6]='\0'
+set cmd[1][0]='E'
+set cmd[1][1]='D'
+set cmd[1][2]='I'
+set cmd[1][3]='T'
+set cmd[1][4]='O'
+set cmd[1][5]='R'
+set cmd[1][6]='='
+set cmd[1][7]='v'
+set cmd[1][8]='i'
+set cmd[1][9]='\0'
+set $r0=0
+echo Current environment variables:\n
+while $r0<env_count
+   echo Name@
+   x/s env_var[$r0].name
+   echo Value@
+   x/s env_var[$r0].value
+   set $r0++
+end
+echo Processed argv list:\n
+set $r0=0
+set $sp=$sp-2*sizeof(char*)
+while $r0<2
+   x/s cmd[$r0]
+   set ((char**)$sp)[$r0]=cmd[$r0]
+   set $r0++
+end
+call export_envvar(2, (char**)$sp)
+if env_var[0].value[0]=='v' && env_var[0].value[1]=='i' && env_var[0].value[2]=='\0'
+   echo Pass: exported value is correct\n
+else
+   echo Fail: exportation failure\n
+   x/s env_var[1].value
+end
+if env_count==3
+   echo Pass: correct value of env_count\n
+else
+   echo Fail: wrong value of env_count\n
+   p env_count
+end
+

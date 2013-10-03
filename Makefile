@@ -112,6 +112,8 @@ test: main.bin
 	mv -f gdb.txt test-find_envvar.txt
 	$(CROSS_COMPILE)gdb -batch -x test-fill_arg.in
 	mv -f gdb.txt test-fill_arg.txt
+	$(CROSS_COMPILE)gdb -batch -x test-export_envvar.in
+	mv -f gdb.txt test-export_envvar.txt
 	pkill -9 $(notdir $(QEMU_STM32))
 
 clean:
