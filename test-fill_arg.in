@@ -1,0 +1,72 @@
+source qemudbg_init.in
+set logging on
+set env_var[0].name[0]='E'
+set env_var[0].name[1]='D'
+set env_var[0].name[2]='I'
+set env_var[0].name[3]='T'
+set env_var[0].name[4]='O'
+set env_var[0].name[5]='R'
+set env_var[0].name[6]='\0'
+set env_var[0].value[0]='v'
+set env_var[0].value[1]='i'
+set env_var[0].value[2]='\0'
+set env_var[1].name[0]='P'
+set env_var[1].name[1]='A'
+set env_var[1].name[2]='T'
+set env_var[1].name[3]='H'
+set env_var[1].name[4]='\0'
+set env_var[1].value[0]='~'
+set env_var[1].value[1]='\0'
+set env_var[2].name[0]='L'
+set env_var[2].name[1]='C'
+set env_var[2].name[2]='_'
+set env_var[2].name[3]='A'
+set env_var[2].name[4]='L'
+set env_var[2].name[5]='L'
+set env_var[2].name[6]='\0'
+set env_var[2].value[0]='U'
+set env_var[2].value[1]='T'
+set env_var[2].value[2]='F'
+set env_var[2].value[3]='8'
+set env_var[2].value[4]='\0'
+set env_count=3
+set cmd[0][0]='P'
+set cmd[0][1]='A'
+set cmd[0][2]='T'
+set cmd[0][3]='H'
+set cmd[0][4]='='
+set cmd[0][5]='/'
+set cmd[0][6]=':'
+set cmd[0][7]='$'
+set cmd[0][8]='P'
+set cmd[0][9]='A'
+set cmd[0][10]='T'
+set cmd[0][11]='H'
+set cmd[0][12]='\0'
+set $r0=0
+echo Current environment variables:\n
+while $r0<env_count
+   echo Name@
+   x/s env_var[$r0].name
+   echo Value@
+   x/s env_var[$r0].value
+   set $r0++
+end
+echo Processed argument:\n
+x/s cmd[0]
+set $r0=fill_arg(cmd[1], cmd[0])
+set cmd[0][7]='~'
+set cmd[0][8]='\0'
+if !strcmp(cmd[1], cmd[0])
+   echo Pass: replaced string is correct\n
+else
+   echo Fail: replacement failure\n
+   x/s cmd[1]
+end
+if $r0==strlen(cmd[1])
+   echo Pass: correct returned value\n
+else
+   echo Fail: returned value is not the length of replaced string\n
+   p $r0
+end
+
