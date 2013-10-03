@@ -1,0 +1,24 @@
+file main.elf
+target remote :3333
+b kernel.c:1265
+set logging on
+set cmd[0][0]='m'
+set cmd[0][1]='a'
+set cmd[0][2]='n'
+set cmd[0][3]='\0'
+set $r0=strlen(cmd[0])
+if $r0==3
+   echo Pass: strlen("man") is 3\n
+else
+   echo Fail: strlen("man") shall be 3\n
+   p $r0
+end
+set cmd[0][0]='\0'
+set $r0=strlen(cmd[0])
+if $r0==0
+   echo Pass: strlen("") is 0\n
+else
+   echo Fail: strlen("") shall be 0\n
+   p $r0
+end
+

@@ -96,7 +96,8 @@ test: main.bin
 		-gdb tcp::3333 -S \
 		-serial stdio \
 		-kernel main.bin -monitor null &
-	$(CROSS_COMPILE)gdb -x gdb.in
+	$(CROSS_COMPILE)gdb -batch -x test-strlen.in
+	mv -f gdb.txt test-strlen.txt
 	pkill -9 $(notdir $(QEMU_STM32))
 
 clean:
