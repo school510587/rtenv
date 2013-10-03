@@ -100,6 +100,8 @@ test: main.bin
 	mv -f gdb.txt test-strlen.txt
 	$(CROSS_COMPILE)gdb -batch -x test-strcmp.in
 	mv -f gdb.txt test-strcmp.txt
+	$(CROSS_COMPILE)gdb -batch -x test-strncmp.in
+	mv -f gdb.txt test-strncmp.txt
 	pkill -9 $(notdir $(QEMU_STM32))
 
 clean:
