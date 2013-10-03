@@ -1,0 +1,34 @@
+source qemudbg_init.in
+set logging on
+set cmd[0][0]='d'
+set cmd[0][1]='e'
+set cmd[0][2]='f'
+set cmd[0][3]='\0'
+set cmd[1][0]='d'
+set cmd[1][1]='e'
+set cmd[1][2]='f'
+set cmd[1][3]='\0'
+set $r0=strcmp(cmd[0], cmd[1])
+if !$r0
+   echo Pass: strcmp("def", "def") is 0\n
+else
+   echo Fail: strcmp("def", "def") shall be 0\n
+   p $r0
+end
+set cmd[0][0]='c'
+set $r0=strcmp(cmd[0], cmd[1])
+if $r0<0
+   echo Pass: strcmp("cef", "def") returns negative value\n
+else
+   echo Fail: strcmp("cef", "def") is non-negative\n
+   p $r0
+end
+set cmd[0][0]='g'
+set $r0=strcmp(cmd[0], cmd[1])
+if $r0>0
+   echo Pass: strcmp("gef", "def") returns positive value\n
+else
+   echo Fail: strcmp("gef", "def") is non-positive\n
+   p $r0
+end
+
