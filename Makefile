@@ -106,6 +106,8 @@ test: main.bin
 	mv -f gdb.txt test-cmdtok.txt
 	$(CROSS_COMPILE)gdb -batch -x test-itoa.in
 	mv -f gdb.txt test-itoa.txt
+	$(CROSS_COMPILE)gdb -batch -x test-find_events.in
+	mv -f gdb.txt test-find_events.txt
 	pkill -9 $(notdir $(QEMU_STM32))
 
 clean:
