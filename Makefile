@@ -100,4 +100,4 @@ test: main.bin
 	pkill -9 $(notdir $(QEMU_STM32))
 
 clean:
-	rm -f *.elf *.bin *.list
+	rm -f *.elf *.bin *.list test-*.txt
