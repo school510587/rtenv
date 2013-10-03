@@ -1,0 +1,43 @@
+source qemudbg_init.in
+set logging on
+set cmd[0][0]='e'
+set cmd[0][1]='c'
+set cmd[0][2]='h'
+set cmd[0][3]='o'
+set cmd[0][4]=' '
+set cmd[0][5]='-'
+set cmd[0][6]='n'
+set cmd[0][7]=' '
+set cmd[0][8]='\"'
+set cmd[0][9]='A'
+set cmd[0][10]=' '
+set cmd[0][11]='B'
+set cmd[0][12]='\"'
+set cmd[0][13]='\0'
+set strcpy(cmd[1], cmd[0])
+set cmd[1][4]='\0'
+set strcpy(cmd[2], cmd[0]+5)
+set cmd[2][2]='\0'
+set strcpy(cmd[3], cmd[0]+9)
+set cmd[3][3]='\0'
+echo Processed command:\n
+p cmd[0]
+echo Tokens:\n
+set $r0=1
+while $r0<=3
+      p cmd[$r0++]
+end
+set $r0=cmdtok(cmd[0])
+set $r1=1
+while $r0
+   echo Testing token:\n
+   p cmd[$r1]
+   if !strcmp($r0, cmd[$r1++])
+      echo Pass: this token is correct\n
+   else
+      echo Fail: this token is wrong\n
+      p $r0
+   end
+   set $r0=cmdtok(NULL)
+end
+

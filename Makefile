@@ -102,6 +102,8 @@ test: main.bin
 	mv -f gdb.txt test-strcmp.txt
 	$(CROSS_COMPILE)gdb -batch -x test-strncmp.in
 	mv -f gdb.txt test-strncmp.txt
+	$(CROSS_COMPILE)gdb -batch -x test-cmdtok.in
+	mv -f gdb.txt test-cmdtok.txt
 	pkill -9 $(notdir $(QEMU_STM32))
 
 clean:
