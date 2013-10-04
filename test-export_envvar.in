@@ -50,15 +50,7 @@ set cmd[1][6]='='
 set cmd[1][7]='v'
 set cmd[1][8]='i'
 set cmd[1][9]='\0'
-set $r0=0
-echo Current environment variables:\n
-while $r0<env_count
-   echo Name@
-   x/s env_var[$r0].name
-   echo Value@
-   x/s env_var[$r0].value
-   set $r0++
-end
+show_environment_variables
 echo Processed argv list:\n
 set $r0=0
 set $sp=$sp-2*sizeof(char*)
