@@ -1,6 +1,4 @@
-file main.elf
-target remote :3333
-b kernel.c:1265
+source qemudbg_init.in
 set logging on
 set itoa(0, cmd[0])
 if cmd[0][0]=='0' && cmd[0][1]=='\0'
