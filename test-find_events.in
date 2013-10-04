@@ -1,33 +1,9 @@
 source qemudbg_init.in
 set logging on
-set cmd[0][0]='h'
-set cmd[0][1]='e'
-set cmd[0][2]='l'
-set cmd[0][3]='p'
-set cmd[0][4]='\0'
-set cmd[1][0]='e'
-set cmd[1][1]='c'
-set cmd[1][2]='h'
-set cmd[1][3]='o'
-set cmd[1][4]=' '
-set cmd[1][5]='H'
-set cmd[1][6]='e'
-set cmd[1][7]='l'
-set cmd[1][8]='l'
-set cmd[1][9]='o'
-set cmd[1][10]='!'
-set cmd[1][11]='\0'
-set cmd[2][0]='h'
-set cmd[2][1]='i'
-set cmd[2][2]='s'
-set cmd[2][3]='t'
-set cmd[2][4]='o'
-set cmd[2][5]='r'
-set cmd[2][6]='y'
-set cmd[2][7]='\0'
-set cmd[3][0]='!'
-set cmd[3][1]='e'
-set cmd[3][2]='\0'
+set strcpy(cmd[0], "help")
+set strcpy(cmd[1], "echo Hello!")
+set strcpy(cmd[2], "history")
+set strcpy(cmd[3], "!e")
 set cur_his=3
 echo Current history:\n
 set $r0=0
@@ -43,9 +19,7 @@ else
    echo Fail: wrong command is found\n
    p cmd[3]
 end
-set cmd[4][0]='!'
-set cmd[4][1]='h'
-set cmd[4][2]='\0'
+set strcpy(cmd[4], "!h")
 set cur_his=4
 echo Processed command:\n
 p cmd[4]
