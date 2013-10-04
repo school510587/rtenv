@@ -1,34 +1,11 @@
 source qemudbg_init.in
 set logging on
-set env_var[0].name[0]='E'
-set env_var[0].name[1]='D'
-set env_var[0].name[2]='I'
-set env_var[0].name[3]='T'
-set env_var[0].name[4]='O'
-set env_var[0].name[5]='R'
-set env_var[0].name[6]='\0'
-set env_var[0].value[0]='v'
-set env_var[0].value[1]='i'
-set env_var[0].value[2]='\0'
-set env_var[1].name[0]='P'
-set env_var[1].name[1]='A'
-set env_var[1].name[2]='T'
-set env_var[1].name[3]='H'
-set env_var[1].name[4]='\0'
-set env_var[1].value[0]='~'
-set env_var[1].value[1]='\0'
-set env_var[2].name[0]='L'
-set env_var[2].name[1]='C'
-set env_var[2].name[2]='_'
-set env_var[2].name[3]='A'
-set env_var[2].name[4]='L'
-set env_var[2].name[5]='L'
-set env_var[2].name[6]='\0'
-set env_var[2].value[0]='U'
-set env_var[2].value[1]='T'
-set env_var[2].value[2]='F'
-set env_var[2].value[3]='8'
-set env_var[2].value[4]='\0'
+set strcpy(env_var[0].name, "EDITOR")
+set strcpy(env_var[0].value, "vi")
+set strcpy(env_var[1].name, "PATH")
+set strcpy(env_var[1].value, "~")
+set strcpy(env_var[2].name, "LC_ALL")
+set strcpy(env_var[2].value, "UTF8")
 set env_count=3
 show_environment_variables
 set $r0=0
