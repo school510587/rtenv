@@ -1,29 +1,21 @@
 source qemudbg_init.in
 set logging on
 set itoa(0, cmd[0])
-if cmd[0][0]=='0' && cmd[0][1]=='\0'
+if !strcmp(cmd[0], "0")
    echo Pass: itoa correctly converts 0 into "0"\n
 else
    echo Fail: error occurred when itoa converts 0\n
    p cmd[0]
 end
-set cmd[1][0]='-'
-set cmd[1][1]='3'
-set cmd[1][2]='2'
-set cmd[1][3]='7'
-set cmd[1][4]='6'
-set cmd[1][5]='8'
-set cmd[1][6]='\0'
 set itoa(-32768, cmd[0])
-if !strcmp(cmd[0], cmd[1])
+if !strcmp(cmd[0], "-32768")
    echo Pass: itoa correctly converts -32768 into "-32768"\n
 else
    echo Fail: error occurred when itoa converts -32768\n
    p cmd[0]
 end
-set cmd[1][5]='7'
 set itoa(32767, cmd[0])
-if !strcmp(cmd[0], cmd[1]+1)
+if !strcmp(cmd[0], "32767")
    echo Pass: itoa correctly converts 32767 into "32767"\n
 else
    echo Fail: error occurred when itoa converts 32767\n
