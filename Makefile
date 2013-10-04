@@ -98,6 +98,8 @@ test: main.bin
 		-kernel main.bin -monitor null &
 	$(CROSS_COMPILE)gdb -batch -x test-strlen.in
 	mv -f gdb.txt test-strlen.txt
+	$(CROSS_COMPILE)gdb -batch -x test-strcpy.in
+	mv -f gdb.txt test-strcpy.txt
 	$(CROSS_COMPILE)gdb -batch -x test-strcmp.in
 	mv -f gdb.txt test-strcmp.txt
 	$(CROSS_COMPILE)gdb -batch -x test-strncmp.in

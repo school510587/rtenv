@@ -1,0 +1,17 @@
+source qemudbg_init.in
+set logging on
+set strcpy(cmd[0], "ps")
+if cmd[0][0]=='p' && cmd[0][1]=='s'
+   echo Pass: "ps" was successfully copied\n
+else
+   echo Fail: the copy failed\n
+   p cmd[0]
+end
+set strcpy(cmd[0], "")
+if cmd[0][0]=='\0'
+   echo Pass: empty string was successfully copied\n
+else
+   echo Fail: the copy failed\n
+   p cmd[0]
+end
+
