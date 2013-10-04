@@ -10,13 +10,12 @@ set env_count=3
 show_environment_variables
 set $r0=0
 while $r0<3
-   echo Searching:\n
-   x/s env_var[$r0].value
+   printf "Searching: \"%s\"\n", env_var[$r0].value
    set $r1=find_envvar(env_var[$r0].name)
    if !strcmp($r1, env_var[$r0].value)
       echo Pass: correct value\n
    else
-      echo Fail: wrong value\n
+      printf "Fail: \"%s\" is found, shall be \"%s\"\n", $r1, env_var[$r0].value
    end
    set $r0++
 end
