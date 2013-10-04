@@ -19,7 +19,7 @@ while $r0<2
    set $r0++
 end
 call export_envvar(2, (char**)$sp)
-if env_var[0].value[0]=='v' && env_var[0].value[1]=='i' && env_var[0].value[2]=='\0'
+if !strcmp(env_var[0].value, cmd[1]+7)
    echo Pass: exported value is correct\n
 else
    printf "Fail: %s=%s, shall be %s\n", env_var[0].name, env_var[0].value, cmd[1]+7
