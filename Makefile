@@ -17,6 +17,7 @@ all: main.bin
 main.bin: kernel.c context_switch.s syscall.s syscall.h
 	$(CROSS_COMPILE)gcc \
 		-DUSER_NAME=\"$(USER)\" \
+		$(DEBUG_FLAGS) \
 		-Wl,-Tmain.ld -nostartfiles \
 		-I . \
 		-I$(LIBDIR)/libraries/CMSIS/CM3/CoreSupport \
@@ -91,7 +92,8 @@ qemuauto_remote: main.bin gdbscript
 	$(CROSS_COMPILE)gdb -x gdbscript&
 	sleep 5
 
-test: main.bin
+test:
+	$(MAKE) main.bin DEBUG_FLAGS=-DDEBUG
 	$(QEMU_STM32) -nographic -M stm32-p103 \
 		-gdb tcp::3333 -S \
 		-serial stdio \
