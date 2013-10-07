@@ -48,12 +48,13 @@ main.bin: kernel.c context_switch.s syscall.s syscall.h syscall_def.h clib.h cli
 	$(CROSS_COMPILE)objdump -S main.elf > main.list
 
 qemu: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 -kernel main.bin
+	$(QEMU_STM32) -nographic -M stm32-p103 -kernel main.bin
 
 qemudbg: main.bin $(QEMU_STM32)
-	$(QEMU_STM32) -M stm32-p103 \
+	$(QEMU_STM32) -nographic -M stm32-p103 \
 		-gdb tcp::3333 -S \
-		-kernel main.bin
+		-kernel main.bin -monitor null &
+	$(CROSS_COMPILE)gdb -x mal.in
 
 
 qemu_remote: main.bin $(QEMU_STM32)
