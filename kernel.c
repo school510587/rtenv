@@ -667,7 +667,7 @@ void show_task_info(int argc, char* argv[])
 		task_info_status[0]='0'+tasks[task_i].status;
 		task_info_status[1]='\0';			
 
-		itoa(tasks[task_i].priority,task_info_priority);
+		itoa(tasks[task_i].priority, task_info_priority, 10);
 
 		write(fdout, &task_info_pid , 2);
 		write_blank(3);
@@ -681,27 +681,24 @@ void show_task_info(int argc, char* argv[])
 
 //this function helps to show int
 
-void itoa(int n, char *buffer)
+void itoa(int n, char *dst, int base)
 {
+	char buf[33] = {0};
+	char *p = &buf[32];
+
 	if (n == 0)
-		*(buffer++) = '0';
+		*--p = '0';
 	else {
-		int f = 10000;
+		char *q;
+		unsigned int num = (base == 10 && num < 0) ? -n : n;
 
-		if (n < 0) {
-			*(buffer++) = '-';
-			n = -n;
-		}
-
-		while (f != 0) {
-			int i = n / f;
-			if (i != 0) {
-				*(buffer++) = '0'+(i%10);;
-			}
-			f/=10;
-		}
+		for (; num; num/=base)
+			*--p = "0123456789ABCDEF" [num % base];
+		if (base == 10 && n < 0)
+			*--p = '-';
 	}
-	*buffer = '\0';
+
+	strcpy(dst, p);
 }
 
 //help
