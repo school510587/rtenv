@@ -344,6 +344,7 @@ void rs232_xmit_msg_task()
 	int fdin;
 	char str[100];
 	int curr_char;
+	int len;
 
 	fdout = open("/dev/tty0/out", 0);
 	fdin = mq_open("/tmp/mqueue/out", O_CREAT);
@@ -353,11 +354,11 @@ void rs232_xmit_msg_task()
 		/* Read from the queue.  Keep trying until a message is
 		 * received.  This will block for a period of time (specified
 		 * by portMAX_DELAY). */
-		read(fdin, str, 100);
+		len = read(fdin, str, 100);
 
 		/* Write each character of the message to the RS232 port. */
 		curr_char = 0;
-		while (str[curr_char] != '\0') {
+		while (curr_char < len - 1) {
 			write(fdout, &str[curr_char], 1);
 			curr_char++;
 		}
@@ -934,6 +935,7 @@ mq_read (struct pipe_ringbuffer *pipe,
 	for (i = 0; i < msg_len; i++) {
 		PIPE_POP(*pipe, buf[i]);
 	}
+	task->stack->r0 = msg_len;
 	return msg_len;
 }
 
