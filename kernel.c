@@ -93,7 +93,7 @@ void puts(char *s)
 #define O_CREAT 4
 
 /*Global Variables*/
-char next_line[3] = {'\n','\r','\0'};
+char next_line[] = {'\n', '\r'};
 size_t task_count = 0;
 char cmd[HISTORY_COUNT][CMDBUF_SIZE];
 int cur_his=0;
@@ -358,7 +358,7 @@ void rs232_xmit_msg_task()
 
 		/* Write each character of the message to the RS232 port. */
 		curr_char = 0;
-		while (curr_char < len - 1) {
+		while (curr_char < len) {
 			write(fdout, &str[curr_char], 1);
 			curr_char++;
 		}
@@ -367,9 +367,8 @@ void rs232_xmit_msg_task()
 
 void serial_test_task()
 {
-	char put_ch[2]={'0','\0'};
+	char c;
 	char hint[] =  USER_NAME "@" USER_NAME "-STM32:~$ ";
-	int hint_length = sizeof(hint);
 	char *p = NULL;
 	int cmd_count = 0;
 
@@ -378,25 +377,25 @@ void serial_test_task()
 
 	for (;; cur_his = (cur_his + 1) % HISTORY_COUNT) {
 		p = cmd[cur_his];
-		write(fdout, hint, hint_length);
+		write(fdout, hint, strlen(hint));
 
 		while (1) {
-			read(fdin, put_ch, 1);
+			read(fdin, &c, 1);
 
-			if (put_ch[0] == '\r' || put_ch[0] == '\n') {
+			if (c == '\r' || c == '\n') {
 				*p = '\0';
-				write(fdout, next_line, 3);
+				write(fdout, next_line, 2);
 				break;
 			}
-			else if (put_ch[0] == 127 || put_ch[0] == '\b') {
+			else if (c == 127 || c == '\b') {
 				if (p > cmd[cur_his]) {
 					p--;
-					write(fdout, "\b \b", 4);
+					write(fdout, "\b \b", 3);
 				}
 			}
 			else if (p - cmd[cur_his] < CMDBUF_SIZE - 1) {
-				*p++ = put_ch[0];
-				write(fdout, put_ch, 2);
+				*p++ = c;
+				write(fdout, &c, 1);
 			}
 		}
 		check_keyword();	
@@ -469,9 +468,9 @@ void check_keyword()
 		}
 	}
 	if (i == CMD_COUNT) {
-		write(fdout, argv[0], strlen(argv[0]) + 1);
-		write(fdout, ": command not found", 20);
-		write(fdout, next_line, 3);
+		write(fdout, argv[0], strlen(argv[0]));
+		write(fdout, ": command not found", 19);
+		write(fdout, next_line, 2);
 	}
 }
 
@@ -583,32 +582,29 @@ void export_envvar(int argc, char *argv[])
 void show_task_info(int argc, char* argv[])
 {
 	char ps_message[]="PID STATUS PRIORITY";
-	int ps_message_length = sizeof(ps_message);
 	int task_i;
 	int task;
 
-	write(fdout, &ps_message , ps_message_length);
-	write(fdout, &next_line , 3);
+	write(fdout, ps_message, strlen(ps_message));
+	write(fdout, next_line, 2);
 
 	for (task_i = 0; task_i < task_count; task_i++) {
-		char task_info_pid[2];
-		char task_info_status[2];
+		char task_info_pid;
+		char task_info_status;
 		char task_info_priority[3];
 
-		task_info_pid[0]='0'+tasks[task_i].pid;
-		task_info_pid[1]='\0';
-		task_info_status[0]='0'+tasks[task_i].status;
-		task_info_status[1]='\0';			
+		task_info_pid='0'+tasks[task_i].pid;
+		task_info_status='0'+tasks[task_i].status;
 
 		itoa(tasks[task_i].priority, task_info_priority, 10);
 
-		write(fdout, &task_info_pid , 2);
+		write(fdout, &task_info_pid, 1);
 		write_blank(3);
-			write(fdout, &task_info_status , 2);
+			write(fdout, &task_info_status, 1);
 		write_blank(5);
-		write(fdout, &task_info_priority , 3);
+		write(fdout, &task_info_priority, strlen(task_info_priority));
 
-		write(fdout, &next_line , 3);
+		write(fdout, next_line, 2);
 	}
 }
 
@@ -641,12 +637,12 @@ void show_cmd_info(int argc, char* argv[])
 	const char help_desp[] = "This system has commands as follow\n\r\0";
 	int i;
 
-	write(fdout, &help_desp, sizeof(help_desp));
+	write(fdout, help_desp, strlen(help_desp));
 	for (i = 0; i < CMD_COUNT; i++) {
-		write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd) + 1);
-		write(fdout, ": ", 3);
-		write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
-		write(fdout, next_line, 3);
+		write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd));
+		write(fdout, ": ", 2);
+		write(fdout, cmd_data[i].description, strlen(cmd_data[i].description));
+		write(fdout, next_line, 2);
 	}
 }
 
@@ -665,13 +661,13 @@ void show_echo(int argc, char* argv[])
 	}
 
 	for (; i < argc; i++) {
-		write(fdout, argv[i], strlen(argv[i]) + 1);
+		write(fdout, argv[i], strlen(argv[i]));
 		if (i < argc - 1)
-			write(fdout, " ", 2);
+			write(fdout, " ", 1);
 	}
 
 	if (~flag & _n)
-		write(fdout, next_line, 3);
+		write(fdout, next_line, 2);
 }
 
 //man
@@ -688,12 +684,12 @@ void show_man_page(int argc, char *argv[])
 	if (i >= CMD_COUNT)
 		return;
 
-	write(fdout, "NAME: ", 7);
-	write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd) + 1);
-	write(fdout, next_line, 3);
-	write(fdout, "DESCRIPTION: ", 14);
-	write(fdout, cmd_data[i].description, strlen(cmd_data[i].description) + 1);
-	write(fdout, next_line, 3);
+	write(fdout, "NAME: ", 6);
+	write(fdout, cmd_data[i].cmd, strlen(cmd_data[i].cmd));
+	write(fdout, next_line, 2);
+	write(fdout, "DESCRIPTION: ", 13);
+	write(fdout, cmd_data[i].description, strlen(cmd_data[i].description));
+	write(fdout, next_line, 2);
 }
 
 void show_history(int argc, char *argv[])
@@ -702,19 +698,18 @@ void show_history(int argc, char *argv[])
 
 	for (i = cur_his + 1; i <= cur_his + HISTORY_COUNT; i++) {
 		if (cmd[i % HISTORY_COUNT][0]) {
-			write(fdout, cmd[i % HISTORY_COUNT], strlen(cmd[i % HISTORY_COUNT]) + 1);
-			write(fdout, next_line, 3);
+			write(fdout, cmd[i % HISTORY_COUNT], strlen(cmd[i % HISTORY_COUNT]));
+			write(fdout, next_line, 2);
 		}
 	}
 }
 
 int write_blank(int blank_num)
 {
-	char blank[] = " ";
 	int blank_count = 0;
 
 	while (blank_count <= blank_num) {
-		write(fdout, blank, sizeof(blank));
+		write(fdout, " ", 1);
 		blank_count++;
 	}
 }
