@@ -84,3 +84,12 @@ process_snapshot:
         nop
         pop {r7}
         bx lr
+
+.global get_tick_count
+get_tick_count:
+        push {r7}
+        mov r7, #0xB
+        svc 0
+        nop
+        pop {r7}
+        bx lr

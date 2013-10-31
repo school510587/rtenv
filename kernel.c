@@ -25,6 +25,7 @@ int fdin;
 
 /* Command handlers. */
 void export_envvar(int argc, char *argv[]);
+void measure_turnaround(int argc, char *argv[]);
 void show_echo(int argc, char *argv[]);
 void show_cmd_info(int argc, char *argv[]);
 void show_task_info(int argc, char *argv[]);
@@ -39,6 +40,7 @@ enum {
 	CMD_HISTORY,
 	CMD_MAN,
 	CMD_PS,
+	CMD_TIME,
 	CMD_COUNT
 } CMD_TYPE;
 /* Structure for command handler. */
@@ -53,7 +55,8 @@ const hcmd_entry cmd_data[CMD_COUNT] = {
 	[CMD_HELP] = {.cmd = "help", .func = show_cmd_info, .description = "List all commands you can use."},
 	[CMD_HISTORY] = {.cmd = "history", .func = show_history, .description = "Show latest commands entered."}, 
 	[CMD_MAN] = {.cmd = "man", .func = show_man_page, .description = "Manual pager."},
-	[CMD_PS] = {.cmd = "ps", .func = show_task_info, .description = "List all the processes."}
+	[CMD_PS] = {.cmd = "ps", .func = show_task_info, .description = "List all the processes."},
+	[CMD_TIME] = {.cmd = "time", .func = measure_turnaround, .description = "Measure turnaround time for a command."}
 };
 
 /* Structure for environment variables. */
@@ -364,6 +367,16 @@ void export_envvar(int argc, char *argv[])
 			env_count++;
 		}
 	}
+}
+
+//time
+void measure_turnaround(int argc, char *argv[])
+{
+	int i = get_tick_count();
+	if (argc > 1)
+		exec_cmd(argc - 1, argv + 1);
+
+	printf("Turnaround: %d ticks\r\n", get_tick_count() - i);
 }
 
 //ps
@@ -704,6 +717,9 @@ int main()
 			break;
 		case 0xA: /* process_snapshot */
 			list_tasks((char*)tasks[current_task].stack->r0, tasks, task_count);
+			break;
+		case 0xB: /* get_tick_count */
+			tasks[current_task].stack->r0 = tick_count;
 			break;
 		default: /* Catch all interrupts */
 			if ((int)tasks[current_task].stack->r7 < 0) {
