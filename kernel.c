@@ -1,6 +1,7 @@
 #include "stm32f10x.h"
 #include "RTOSConfig.h"
 
+#include "kernel.h"
 #include "syscall.h"
 
 #include <stddef.h>
@@ -69,28 +70,12 @@ void puts(char *s)
 #define MAX_ENVCOUNT 30
 #define MAX_ENVNAME 15
 #define MAX_ENVVALUE 127
-#define STACK_SIZE 512 /* Size of task stacks in words */
-#define TASK_LIMIT 8  /* Max number of tasks we can handle */
-#define PIPE_BUF   128 /* Size of largest atomic pipe message */
-#define PATH_MAX   32 /* Longest absolute path */
-#define PIPE_LIMIT (TASK_LIMIT * 2)
 
 #define PATHSERVER_FD (TASK_LIMIT + 3) 
 	/* File descriptor of pipe to pathserver */
 
-#define PRIORITY_DEFAULT 20
-#define PRIORITY_LIMIT (PRIORITY_DEFAULT * 2 - 1)
-
-#define TASK_READY      0
-#define TASK_WAIT_READ  1
-#define TASK_WAIT_WRITE 2
-#define TASK_WAIT_INTR  3
-#define TASK_WAIT_TIME  4
-
 #define S_IFIFO 1
 #define S_IMSGQ 2
-
-#define O_CREAT 4
 
 /*Global Variables*/
 char next_line[] = {'\n', '\r'};
@@ -141,38 +126,6 @@ typedef struct {
 evar_entry env_var[MAX_ENVCOUNT];
 int env_count = 0;
 
-/* Stack struct of user thread, see "Exception entry and return" */
-struct user_thread_stack {
-	unsigned int r4;
-	unsigned int r5;
-	unsigned int r6;
-	unsigned int r7;
-	unsigned int r8;
-	unsigned int r9;
-	unsigned int r10;
-	unsigned int fp;
-	unsigned int _lr;	/* Back to system calls or return exception */
-	unsigned int _r7;	/* Backup from isr */
-	unsigned int r0;
-	unsigned int r1;
-	unsigned int r2;
-	unsigned int r3;
-	unsigned int ip;
-	unsigned int lr;	/* Back to user thread code */
-	unsigned int pc;
-	unsigned int xpsr;
-	unsigned int stack[STACK_SIZE - 18];
-};
-
-/* Task Control Block */
-struct task_control_block {
-    struct user_thread_stack *stack;
-    int pid;
-    int status;
-    int priority;
-    struct task_control_block **prev;
-    struct task_control_block  *next;
-};
 struct task_control_block tasks[TASK_LIMIT];
 
 /* 
@@ -719,17 +672,6 @@ void first()
 	while(1);
 }
 
-struct pipe_ringbuffer {
-	int start;
-	int end;
-	char data[PIPE_BUF];
-
-	int (*readable) (struct pipe_ringbuffer*, struct task_control_block*);
-	int (*writable) (struct pipe_ringbuffer*, struct task_control_block*);
-	int (*read) (struct pipe_ringbuffer*, struct task_control_block*);
-	int (*write) (struct pipe_ringbuffer*, struct task_control_block*);
-};
-
 #define RB_PUSH(rb, size, v) do { \
 		(rb).data[(rb).end] = (v); \
 		(rb).end++; \
@@ -802,9 +744,6 @@ task_pop (struct task_control_block **list)
 	}
 	return NULL;
 }
-
-void _read(struct task_control_block *task, struct task_control_block *tasks, size_t task_count, struct pipe_ringbuffer *pipes);
-void _write(struct task_control_block *task, struct task_control_block *tasks, size_t task_count, struct pipe_ringbuffer *pipes);
 
 void _read(struct task_control_block *task, struct task_control_block *tasks, size_t task_count, struct pipe_ringbuffer *pipes)
 {
