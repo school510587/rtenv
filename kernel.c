@@ -212,6 +212,23 @@ char *cmdtok(char *cmd)
 	return cur;
 }
 
+void exec_cmd(int argc, char *argv[])
+{
+	int i;
+
+	for (i = 0; i < CMD_COUNT; i++) {
+		if (!strcmp(argv[0], cmd_data[i].cmd)) {
+			cmd_data[i].func(argc, argv);
+			break;
+		}
+	}
+	if (i == CMD_COUNT) {
+		write(fdout, argv[0], strlen(argv[0]));
+		write(fdout, ": command not found", 19);
+		write(fdout, next_line, 2);
+	}
+}
+
 void check_keyword()
 {
 	char *argv[MAX_ARGC + 1] = {NULL};
@@ -242,17 +259,7 @@ void check_keyword()
 		p += l + 1;
 	}
 
-	for (i = 0; i < CMD_COUNT; i++) {
-		if (!strcmp(argv[0], cmd_data[i].cmd)) {
-			cmd_data[i].func(argc, argv);
-			break;
-		}
-	}
-	if (i == CMD_COUNT) {
-		write(fdout, argv[0], strlen(argv[0]));
-		write(fdout, ": command not found", 19);
-		write(fdout, next_line, 2);
-	}
+	exec_cmd(argc, argv);
 }
 
 void find_events()
