@@ -18,7 +18,6 @@
 
 /*Global Variables*/
 char next_line[] = {'\n', '\r'};
-size_t task_count = 0;
 char cmd[HISTORY_COUNT][CMDBUF_SIZE];
 int cur_his=0;
 int fdout;
@@ -64,8 +63,6 @@ typedef struct {
 } evar_entry;
 evar_entry env_var[MAX_ENVCOUNT];
 int env_count = 0;
-
-struct task_control_block tasks[TASK_LIMIT];
 
 void serialout(USART_TypeDef* uart, unsigned int intr)
 {
@@ -365,31 +362,15 @@ void export_envvar(int argc, char *argv[])
 //ps
 void show_task_info(int argc, char* argv[])
 {
+	char buffer[200];
 	char ps_message[]="PID STATUS PRIORITY";
 	int task_i;
 	int task;
 
 	write(fdout, ps_message, strlen(ps_message));
 	write(fdout, next_line, 2);
-
-	for (task_i = 0; task_i < task_count; task_i++) {
-		char task_info_pid;
-		char task_info_status;
-		char task_info_priority[3];
-
-		task_info_pid='0'+tasks[task_i].pid;
-		task_info_status='0'+tasks[task_i].status;
-
-		itoa(tasks[task_i].priority, task_info_priority, 10);
-
-		write(fdout, &task_info_pid, 1);
-		write_blank(3);
-			write(fdout, &task_info_status, 1);
-		write_blank(5);
-		write(fdout, &task_info_priority, strlen(task_info_priority));
-
-		write(fdout, next_line, 2);
-	}
+	process_snapshot(buffer);
+	write(fdout, buffer, strlen(buffer));
 }
 
 //this function helps to show int
@@ -586,14 +567,24 @@ task_pop (struct task_control_block **list)
 	return NULL;
 }
 
+void list_tasks(char *buf, const struct task_control_block *tasks, int task_count)
+{
+	int i;
+
+	for (i = 0; i < task_count; i++) {
+		sprintf(buf, "%d   %d     %d\r\n", tasks[i].pid, tasks[i].status, tasks[i].priority);
+		buf += strlen(buf);
+	}
+}
+
 int main()
 {
 	unsigned int stacks[TASK_LIMIT][STACK_SIZE];
-	//struct task_control_block tasks[TASK_LIMIT];
+	struct task_control_block tasks[TASK_LIMIT];
 	struct pipe_ringbuffer pipes[PIPE_LIMIT];
 	struct task_control_block *ready_list[PRIORITY_LIMIT + 1];  /* [0 ... 39] */
 	struct task_control_block *wait_list = NULL;
-	//size_t task_count = 0;
+	size_t task_count = 0;
 	size_t current_task = 0;
 	size_t i;
 	struct task_control_block *task;
@@ -703,6 +694,9 @@ int main()
 				tasks[current_task].stack->r0 += tick_count;
 				tasks[current_task].status = TASK_WAIT_TIME;
 			}
+			break;
+		case 0xA: /* process_snapshot */
+			list_tasks((char*)tasks[current_task].stack->r0, tasks, task_count);
 			break;
 		default: /* Catch all interrupts */
 			if ((int)tasks[current_task].stack->r7 < 0) {
