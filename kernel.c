@@ -313,16 +313,6 @@ void serialin(USART_TypeDef* uart, unsigned int intr)
 	}
 }
 
-void greeting()
-{
-	int fdout = open("/dev/tty0/out", 0);
-	char *string = "Hello, World!\n";
-	while (*string) {
-		write(fdout, string, 1);
-		string++;
-	}
-}
-
 void echo()
 {
 	int fdout;
