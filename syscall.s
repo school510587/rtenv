@@ -35,8 +35,8 @@ read:
 	nop
 	pop {r7}
 	bx lr
-.global interrupt_wait
-interrupt_wait:
+.global wait_interrupt
+wait_interrupt:
 	push {r7}
 	mov r7, #0x5
 	svc 0

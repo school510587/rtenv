@@ -18,6 +18,8 @@
 #define TASK_WAIT_WRITE 2
 #define TASK_WAIT_INTR  3
 #define TASK_WAIT_TIME  4
+#define TASK_WAIT_RX 5
+#define TASK_WAIT_TX 6
 
 #define O_CREAT 4
 

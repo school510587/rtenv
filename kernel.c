@@ -71,21 +71,13 @@ void serialout(USART_TypeDef* uart, unsigned int intr)
 {
 	int fd;
 	char c;
-	int doread = 1;
 	mkfifo("/dev/tty0/out", 0);
 	fd = open("/dev/tty0/out", 0);
 
 	while (1) {
-		if (doread)
-			read(fd, &c, 1);
-		doread = 0;
-		if (USART_GetFlagStatus(uart, USART_FLAG_TXE) == SET) {
-			USART_SendData(uart, c);
-			USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
-			doread = 1;
-		}
-		interrupt_wait(intr);
-		USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
+		read(fd, &c, 1);
+		USART_SendData(uart, c);
+		wait_interrupt(INTR_UART_TX);
 	}
 }
 
@@ -96,14 +88,10 @@ void serialin(USART_TypeDef* uart, unsigned int intr)
 	mkfifo("/dev/tty0/in", 0);
 	fd = open("/dev/tty0/in", 0);
 
-    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
-
 	while (1) {
-		interrupt_wait(intr);
-		if (USART_GetFlagStatus(uart, USART_FLAG_RXNE) == SET) {
-			c = USART_ReceiveData(uart);
-			write(fd, &c, 1);
-		}
+		wait_interrupt(INTR_UART_RX);
+		c = USART_ReceiveData(uart);
+		write(fd, &c, 1);
 	}
 }
 
@@ -614,7 +602,8 @@ int main()
 	SysTick_Config(configCPU_CLOCK_HZ / configTICK_RATE_HZ);
 
 	init_rs232();
-	__enable_irq();
+	enable_rs232_interrupts();
+	enable_rs232();
 
 	tasks[task_count].stack = (void*)init_task(stacks[task_count], &first);
 	tasks[task_count].pid = 0;
@@ -626,6 +615,10 @@ int main()
 	/* Initialize ready lists */
 	for (i = 0; i <= PRIORITY_LIMIT; i++)
 		ready_list[i] = NULL;
+
+	NVIC_EnableIRQ(tasks[current_task].stack->r0);
+	USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
+	USART_ITConfig(USART2, USART_IT_RXNE, DISABLE);
 
 	while (1) {
 		tasks[current_task].stack = activate(tasks[current_task].stack);
@@ -670,11 +663,23 @@ int main()
 		case 0x4: /* read */
 			_read(&tasks[current_task], tasks, task_count, pipes);
 			break;
-		case 0x5: /* interrupt_wait */
-			/* Enable interrupt */
-			NVIC_EnableIRQ(tasks[current_task].stack->r0);
-			/* Block task waiting for interrupt to happen */
-			tasks[current_task].status = TASK_WAIT_INTR;
+		case 0x5: /* wait_interrupt */
+			switch (tasks[current_task].stack->r0) {
+				case INTR_UART_RX:
+					if (USART_GetFlagStatus(USART2, USART_FLAG_RXNE) != SET) {
+						tasks[current_task].status = TASK_WAIT_RX;
+						USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+						tasks[current_task].stack->r0 = USART2_IRQn;
+					}
+					break;
+				case INTR_UART_TX:
+					if (USART_GetFlagStatus(USART2, USART_FLAG_TXE) != SET) {
+						USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
+						tasks[current_task].status = TASK_WAIT_TX;
+						tasks[current_task].stack->r0 = USART2_IRQn;
+					}
+					break;
+			}
 			break;
 		case 0x6: /* getpriority */
 			{
@@ -724,6 +729,7 @@ int main()
 		default: /* Catch all interrupts */
 			if ((int)tasks[current_task].stack->r7 < 0) {
 				unsigned int intr = -tasks[current_task].stack->r7 - 16;
+				int wait_for = TASK_WAIT_INTR;
 
 				if (intr == SysTick_IRQn) {
 					/* Never disable timer. We need it for pre-emption */
@@ -731,12 +737,18 @@ int main()
 					tick_count++;
 				}
 				else {
-					/* Disable interrupt, interrupt_wait re-enables */
-					NVIC_DisableIRQ(intr);
+if (USART_GetITStatus(USART2, USART_IT_TXE) != RESET) {
+USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
+wait_for=TASK_WAIT_TX;
+}
+else if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET) {
+USART_ITConfig(USART2, USART_IT_RXNE, DISABLE);
+wait_for=TASK_WAIT_RX;
+}
 				}
 				/* Unblock any waiting tasks */
 				for (i = 0; i < task_count; i++)
-					if ((tasks[i].status == TASK_WAIT_INTR && tasks[i].stack->r0 == intr) ||
+					if ((tasks[i].status == wait_for && tasks[i].stack->r0 == intr) ||
 					    (tasks[i].status == TASK_WAIT_TIME && tasks[i].stack->r0 == tick_count))
 						tasks[i].status = TASK_READY;
 			}
